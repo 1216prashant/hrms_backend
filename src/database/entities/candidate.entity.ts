@@ -42,6 +42,9 @@ export class Candidate {
   @Column({ length: 150, nullable: true })
   industry: string | null;
 
+  @Column({ length: 150, nullable: true })
+  source: string | null;
+
   @Column({ type: 'longtext', nullable: true })
   skills: string | null;
 

@@ -15,6 +15,7 @@ import { ResponseTransformInterceptor } from './common/interceptors/response-tra
 import { ClientSpocModule } from './modules/clients/client-spoc.module';
 import { RequirementModule } from './modules/requirements/requirements.module';
 import { CandidatesModule } from './modules/candidates/candidates.module';
+import { RequirementCandidatesModule } from './modules/requirement-candidates/requirement-candidates.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CandidatesModule } from './modules/candidates/candidates.module';
     ClientsModule,
     RequirementModule,
     CandidatesModule,
+    RequirementCandidatesModule,
     AuthModule,
   ],
   controllers: [AppController],

@@ -75,7 +75,7 @@ export class RequirementService {
     });
   }
 
-  async update(data: RequirementCreateDto, id: string) {
+  async update(data: RequirementCreateDto, id: number) {
     const existing = await this.repo.findOne({
       where: { id },
       relations: ['client', 'spoc', 'assignedHr'],
@@ -130,14 +130,14 @@ export class RequirementService {
     return this.repo.find({ relations: ['client','spoc','assignedHr'] });
   }
 
-  findOne(id: string) {
+  findOne(id: number) {
     return this.repo.findOne({
       where: { id },
       relations: ['client','spoc','assignedHr'],
     });
   }
 
-  remove(id: string) {
+  remove(id: number) {
     return this.repo.delete(id);
   }
   findByClientId(id: string){

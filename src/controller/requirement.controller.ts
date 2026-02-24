@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -19,7 +19,7 @@ export class RequirementController {
 
     @Get('/:id')
     @UseGuards(JwtAuthGuard)
-    getOneRequirement(@Param('id') id: string){
+    getOneRequirement(@Param('id', ParseIntPipe) id: number){
         return this.requirementService.findOne(id)
     }
 
@@ -40,14 +40,14 @@ export class RequirementController {
     @Put('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    updateRequirement(@Body() data: Partial<Requirement>, @Param('id') id: string ){
+    updateRequirement(@Body() data: Partial<Requirement>, @Param('id', ParseIntPipe) id: number ){
         return this.requirementService.update(data,id)
     }
 
     @Delete('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    deleteRequirement(@Param('id') id: string ){
+    deleteRequirement(@Param('id', ParseIntPipe) id: number ){
         return this.requirementService.remove(id)
     }
 
