@@ -1,6 +1,7 @@
 import {
   Entity, PrimaryGeneratedColumn, Column,
-  CreateDateColumn, OneToMany
+  CreateDateColumn, OneToMany,
+  BaseEntity
 } from 'typeorm';
 import { Requirement } from './requirement.entity';
 
@@ -11,10 +12,10 @@ export enum UserRole {
 }
 
 @Entity('users')
-export class User {
+export class User extends BaseEntity{
 
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ name: 'name' })
   name: string;

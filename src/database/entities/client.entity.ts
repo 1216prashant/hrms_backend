@@ -8,16 +8,16 @@ import {
   @Entity('clients')
   export class Client {
   
-    @PrimaryGeneratedColumn('uuid')
+    @PrimaryGeneratedColumn()
     id: string;
   
     @Column({ name: 'company_name' })
     companyName: string;
   
-    @Column({ nullable: true })
+    @Column({ nullable: true, name: 'industry' })
     industry: string;
   
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: 'text', name: 'address' })
     address: string;
   
     @Column({ default: true, name: 'is_active' })

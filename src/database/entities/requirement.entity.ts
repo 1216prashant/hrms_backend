@@ -18,7 +18,7 @@ export enum BillingModel {
   @Entity('requirements')
   export class Requirement {
   
-    @PrimaryGeneratedColumn('uuid')
+    @PrimaryGeneratedColumn()
     id: string;
   
     @Column({ name: 'job_title' })

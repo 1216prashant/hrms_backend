@@ -16,7 +16,7 @@ export class AuthService {
   ) {}
 
   async registerUser(data: Partial<User>) {
-    const { password, ...rest } = data;
+    const { id, password, ...rest } = data;
     const hashedPassword = password
       ? await bcrypt.hash(password, this.SALT_ROUNDS)
       : undefined;

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Client } from "src/database/entities/client.entity";
 import { Repository } from "typeorm";
@@ -14,6 +14,17 @@ export class ClientsService {
   create(data: Partial<Client>) {
     const client = this.repo.create(data);
     return this.repo.save(client);
+  }
+
+  async update(data: Partial<Client>, id: string) {
+    const result = await this.repo.update(id, data);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Client with id ${id} not found`);
+    }
+    return this.repo.findOne({
+      where: { id },
+      relations: ['spocs', 'requirements'],
+    });
   }
 
   findAll() {
