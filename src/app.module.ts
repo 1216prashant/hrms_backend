@@ -16,6 +16,7 @@ import { ClientSpocModule } from './modules/clients/client-spoc.module';
 import { RequirementModule } from './modules/requirements/requirements.module';
 import { CandidatesModule } from './modules/candidates/candidates.module';
 import { RequirementCandidatesModule } from './modules/requirement-candidates/requirement-candidates.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { RequirementCandidatesModule } from './modules/requirement-candidates/re
     RequirementModule,
     CandidatesModule,
     RequirementCandidatesModule,
+    InvoicesModule,
     AuthModule,
   ],
   controllers: [AppController],
