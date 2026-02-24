@@ -17,6 +17,7 @@ import { RequirementModule } from './modules/requirements/requirements.module';
 import { CandidatesModule } from './modules/candidates/candidates.module';
 import { RequirementCandidatesModule } from './modules/requirement-candidates/requirement-candidates.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
     CandidatesModule,
     RequirementCandidatesModule,
     InvoicesModule,
+    PaymentsModule,
     AuthModule,
   ],
   controllers: [AppController],
