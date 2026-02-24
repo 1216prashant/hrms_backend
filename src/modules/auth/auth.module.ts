@@ -21,7 +21,7 @@ import { JwtStrategy } from '../../common/strategies/jwt.strategy';
         return {
           secret,
           signOptions: {
-            expiresIn: 60 * 60 * 24 * 30, // 30 days in seconds
+            expiresIn: 60*30, // 30 minutes in seconds
           },
         };
       },
