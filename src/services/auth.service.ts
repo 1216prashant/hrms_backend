@@ -24,7 +24,9 @@ export class AuthService {
       ...rest,
       ...(hashedPassword !== undefined && { password: hashedPassword }),
     });
-    return this.repo.save(user);
+    const saved = await this.repo.save(user);
+    const { password: _p, ...userWithoutPassword } = saved;
+    return userWithoutPassword as User;
   }
 
   async login(email: string, password: string) {

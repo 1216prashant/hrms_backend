@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,6 +13,7 @@ import { ClientsModule } from './modules/clients/clients.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
 import { ClientSpocModule } from './modules/clients/client-spoc.module';
+import { RequirementModule } from './modules/requirements/requirements.module';
 
 @Module({
   imports: [
@@ -29,6 +31,7 @@ import { ClientSpocModule } from './modules/clients/client-spoc.module';
     TypeOrmModule.forFeature([User, Requirement, Client, ClientSpoc]),
     ClientSpocModule,
     ClientsModule,
+    RequirementModule,
     AuthModule,
   ],
   controllers: [AppController],
@@ -37,6 +40,10 @@ import { ClientSpocModule } from './modules/clients/client-spoc.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseTransformInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
     },
   ],
 })

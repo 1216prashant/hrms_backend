@@ -3,6 +3,7 @@ import {
   CreateDateColumn, OneToMany,
   BaseEntity
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Requirement } from './requirement.entity';
 
 export enum UserRole {
@@ -23,7 +24,8 @@ export class User extends BaseEntity{
   @Column({ unique: true, name: 'email' })
   email: string;
 
-  @Column({name: 'password'})
+  @Column({ name: 'password' })
+  @Exclude()
   password: string;
 
   @Column({ type: 'enum', enum: UserRole, name: 'role' })

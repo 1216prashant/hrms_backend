@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn } from "typeorm";
+import { Type } from "class-transformer";
 import { ClientSpoc } from "./client-spoc.entity";
 import { Client } from "./client.entity";
 import { User } from "./user.entity";
@@ -60,7 +61,8 @@ export enum BillingModel {
     @JoinColumn({ name: 'spoc_id' })
     spoc: ClientSpoc;
   
-    @ManyToOne(() => User, user => user.requirements, { nullable: true })
-    @JoinColumn({ name: 'assigned_hr_id' })
-    assignedHr: User;
+  @ManyToOne(() => User, user => user.requirements, { nullable: true })
+  @JoinColumn({ name: 'assigned_hr_id' })
+  @Type(() => User)
+  assignedHr: User;
   }
