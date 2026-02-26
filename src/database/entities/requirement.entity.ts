@@ -93,6 +93,9 @@ export class Requirement {
   @Column({ name: 'joining_period', type: 'int', unsigned: true, nullable: true })
   joiningPeriod: number | null;
 
+  @Column({ name: 'jd_url', type: 'text', nullable: true })
+  jdUrl: string | null;
+
   @ManyToOne(() => User, (user) => user.requirements, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'assigned_hr_id' })
   @Type(() => User)

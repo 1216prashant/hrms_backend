@@ -20,6 +20,7 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ClientAgreementsModule } from './modules/client-agreements/client-agreements.module';
 import { ClientFinanceDetailsModule } from './modules/client-finance-details/client-finance-details.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ClientFinanceDetailsModule } from './modules/client-finance-details/cli
     PaymentsModule,
     ClientAgreementsModule,
     ClientFinanceDetailsModule,
+    UploadModule,
     AuthModule,
   ],
   controllers: [AppController],
