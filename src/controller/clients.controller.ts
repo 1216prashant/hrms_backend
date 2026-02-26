@@ -5,6 +5,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/database/entities/user.entity';
 import { Client } from 'src/database/entities/client.entity';
+import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 
 @Controller('clients')
 export class ClientsController {
@@ -25,6 +26,7 @@ export class ClientsController {
 
     @Post('/')
     @UseGuards(JwtAuthGuard, RolesGuard)
+    @ApiMessage('Client created successfully')
     @Roles(UserRole.ADMIN)
     createClient(@Body() data: Partial<Client>){
         return this.clientsService.create(data)
@@ -34,6 +36,7 @@ export class ClientsController {
     @Put('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
+    @ApiMessage('Client updated successfully')
     updateClient(@Body() data: Partial<Client>, @Param('id') id: string ){
         return this.clientsService.update(data,id)
     }
@@ -41,6 +44,7 @@ export class ClientsController {
     @Delete('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
+    @ApiMessage('Client deleted successfully')
     deleteClient(@Param('id') id: string ){
         return this.clientsService.remove(id)
     }

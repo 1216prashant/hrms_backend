@@ -15,6 +15,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/database/entities/user.entity';
 import { ClientAgreementService } from 'src/services/client-agreement.service';
 import { ClientAgreement } from 'src/database/entities/client-agreement.entity';
+import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 
 @Controller('client-agreements')
 export class ClientAgreementController {
@@ -40,6 +41,7 @@ export class ClientAgreementController {
 
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiMessage('Client Agreement created successfully')
   @Roles(UserRole.ADMIN)
   create(
     @Body() data: Partial<ClientAgreement> & { client_id: number },
@@ -50,6 +52,7 @@ export class ClientAgreementController {
   @Put('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Client Agreement updated successfully')
   update(
     @Body() data: Partial<ClientAgreement> & { client_id?: number },
     @Param('id', ParseIntPipe) id: number,
@@ -60,6 +63,7 @@ export class ClientAgreementController {
   @Delete('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Client Agreement deleted successfully')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.clientAgreementService.remove(id);
   }

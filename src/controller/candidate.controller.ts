@@ -12,6 +12,7 @@ import {
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CandidateService } from 'src/services/candidate.service';
 import { Candidate } from 'src/database/entities/candidate.entity';
+import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 
 @Controller('candidates')
 export class CandidateController {
@@ -31,12 +32,14 @@ export class CandidateController {
 
   @Post('/')
   @UseGuards(JwtAuthGuard)
+  @ApiMessage('Candidate created successfully')
   createCandidate(@Body() data: Partial<Candidate>) {
     return this.candidateService.create(data);
   }
 
   @Put('/:id')
   @UseGuards(JwtAuthGuard)
+  @ApiMessage('Candidate updated successfully')
   updateCandidate(
     @Body() data: Partial<Candidate>,
     @Param('id', ParseIntPipe) id: number,
@@ -46,6 +49,7 @@ export class CandidateController {
 
   @Delete('/:id')
   @UseGuards(JwtAuthGuard)
+  @ApiMessage('Candidate deleted successfully')
   deleteCandidate(@Param('id', ParseIntPipe) id: number) {
     return this.candidateService.remove(id);
   }

@@ -15,6 +15,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/database/entities/user.entity';
 import { InvoiceService } from 'src/services/invoice.service';
 import { Invoice } from 'src/database/entities/invoice.entity';
+import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 
 @Controller('invoices')
 export class InvoiceController {
@@ -53,6 +54,7 @@ export class InvoiceController {
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Invoice created successfully')
   createInvoice(@Body() data: Partial<Invoice> & { requirement_id: number; candidate_id: number }) {
     return this.invoiceService.create(data);
   }
@@ -60,6 +62,7 @@ export class InvoiceController {
   @Put('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Invoice updated successfully')
   updateInvoice(
     @Body() data: Partial<Invoice> & { requirement_id?: number; candidate_id?: number },
     @Param('id', ParseIntPipe) id: number,
@@ -70,6 +73,7 @@ export class InvoiceController {
   @Delete('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Invoice deleted successfully')
   deleteInvoice(@Param('id', ParseIntPipe) id: number) {
     return this.invoiceService.remove(id);
   }

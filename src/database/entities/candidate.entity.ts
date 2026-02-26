@@ -39,8 +39,15 @@ export class Candidate {
   @Column({ type: 'int', nullable: true })
   age: number | null;
 
-  @Column({ length: 150, nullable: true })
+  @Column({ length: 150, nullable: true, name: 'industry' })
   industry: string | null;
+
+  
+  @Column({ length: 150, nullable: true, name: 'domain' })
+  domain: string | null;
+  
+  @Column({ length: 150, nullable: true, name: 'sub_domain' })
+  subDomain: string | null;
 
   @Column({ length: 150, nullable: true })
   source: string | null;

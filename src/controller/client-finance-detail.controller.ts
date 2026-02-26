@@ -15,6 +15,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/database/entities/user.entity';
 import { ClientFinanceDetailService } from 'src/services/client-finance-detail.service';
 import { ClientFinanceDetail } from 'src/database/entities/client-finance-detail.entity';
+import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 
 @Controller('client-finance-details')
 export class ClientFinanceDetailController {
@@ -34,6 +35,7 @@ export class ClientFinanceDetailController {
 
   @Get('/:id')
   @UseGuards(JwtAuthGuard)
+  @ApiMessage('Client Finance Detail created successfully')
   getOne(@Param('id', ParseIntPipe) id: number) {
     return this.clientFinanceDetailService.findOne(id);
   }
@@ -41,6 +43,7 @@ export class ClientFinanceDetailController {
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Client Finance Detail created successfully')
   create(
     @Body() data: Partial<ClientFinanceDetail> & { client_id: number },
   ) {
@@ -50,6 +53,7 @@ export class ClientFinanceDetailController {
   @Put('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Client Finance Detail updated successfully')
   update(
     @Body() data: Partial<ClientFinanceDetail> & { client_id?: number },
     @Param('id', ParseIntPipe) id: number,
@@ -60,6 +64,7 @@ export class ClientFinanceDetailController {
   @Delete('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Client Finance Detail deleted successfully')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.clientFinanceDetailService.remove(id);
   }

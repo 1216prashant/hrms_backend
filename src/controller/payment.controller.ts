@@ -15,6 +15,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/database/entities/user.entity';
 import { PaymentService } from 'src/services/payment.service';
 import { Payment } from 'src/database/entities/payment.entity';
+import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 
 @Controller('payments')
 export class PaymentController {
@@ -41,6 +42,7 @@ export class PaymentController {
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Payment created successfully')
   createPayment(@Body() data: Partial<Payment> & { invoice_id: number }) {
     return this.paymentService.create(data);
   }
@@ -48,6 +50,7 @@ export class PaymentController {
   @Put('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Payment updated successfully')
   updatePayment(
     @Body() data: Partial<Payment> & { invoice_id?: number },
     @Param('id', ParseIntPipe) id: number,
@@ -58,6 +61,7 @@ export class PaymentController {
   @Delete('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiMessage('Payment deleted successfully')
   deletePayment(@Param('id', ParseIntPipe) id: number) {
     return this.paymentService.remove(id);
   }

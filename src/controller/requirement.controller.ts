@@ -5,7 +5,8 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/database/entities/user.entity';
 import { RequirementService } from 'src/services/requirement.service';
 import { Requirement } from 'src/database/entities/requirement.entity';
-
+import { ApiMessage } from 'src/common/decorators/api-message.decorator';
+    
 @Controller('requirements')
 export class RequirementController {
 
@@ -32,6 +33,7 @@ export class RequirementController {
     @Post('/')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
+    @ApiMessage('Requirement created successfully')
     createRequirement(@Body() data: Partial<Requirement>){
         return this.requirementService.create(data)
     }
@@ -40,6 +42,7 @@ export class RequirementController {
     @Put('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
+    @ApiMessage('Requirement updated successfully')
     updateRequirement(@Body() data: Partial<Requirement>, @Param('id', ParseIntPipe) id: number ){
         return this.requirementService.update(data,id)
     }
@@ -47,6 +50,7 @@ export class RequirementController {
     @Delete('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
+    @ApiMessage('Requirement deleted successfully')
     deleteRequirement(@Param('id', ParseIntPipe) id: number ){
         return this.requirementService.remove(id)
     }
