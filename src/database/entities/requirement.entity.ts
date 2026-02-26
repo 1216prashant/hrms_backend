@@ -125,6 +125,10 @@ export class Requirement {
   @Column({ name: 'replacement_days', type: 'int', default: 90 })
   replacementDays: number;
 
+  
+  @Column({ name: 'due_date', type: 'date' })
+  dueDate: Date;
+
   @Column({ type: 'enum', enum: RequirementStatus })
   status: RequirementStatus;
 

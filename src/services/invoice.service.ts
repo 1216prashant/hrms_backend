@@ -122,9 +122,10 @@ export class InvoiceService {
     });
   }
 
-  findByClientId(clientId: string) {
+  findByClientId(clientId: string | number) {
+    const id = Number(clientId);
     return this.repo.find({
-      where: { requirement: { client: { id: clientId } } },
+      where: { requirement: { client: { id } } },
       relations: ['requirement', 'candidate', 'requirement.client'],
       order: { id: 'ASC' },
     });

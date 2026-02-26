@@ -16,9 +16,13 @@ export class ClientSpocService {
 
   async create(data: Partial<ClientSpoc> & { client_id?: string | number }) {
     const { client_id, ...rest } = data as Partial<ClientSpoc> & { client_id?: string | number };
-    const clientId = client_id != null ? String(client_id) : (data.client as unknown as Client)?.id;
-    if (!clientId) {
+    const rawId = client_id != null ? client_id : (data.client as unknown as Client)?.id;
+    if (rawId == null) {
       throw new BadRequestException('client_id is required');
+    }
+    const clientId = Number(rawId);
+    if (!Number.isInteger(clientId)) {
+      throw new BadRequestException('client_id must be a valid number');
     }
     const clientExists = await this.clientRepo.findOne({ where: { id: clientId } });
     if (!clientExists) {
@@ -38,7 +42,10 @@ export class ClientSpocService {
     }
     const { client_id, ...rest } = data as Partial<ClientSpoc> & { client_id?: string | number };
     if (client_id != null) {
-      const clientId = String(client_id);
+      const clientId = Number(client_id);
+      if (!Number.isInteger(clientId)) {
+        throw new BadRequestException('client_id must be a valid number');
+      }
       const clientExists = await this.clientRepo.findOne({ where: { id: clientId } });
       if (!clientExists) {
         throw new NotFoundException(`Client with id ${clientId} not found`);
@@ -67,9 +74,10 @@ export class ClientSpocService {
   remove(id: string) {
     return this.repo.delete(id);
   }
-  findByClientId(id: string){
+  findByClientId(id: string | number) {
+    const clientId = Number(id);
     return this.repo.find({
-      where: { client: { id: id } },
+      where: { client: { id: clientId } },
       relations: ['client'],
     });
   }

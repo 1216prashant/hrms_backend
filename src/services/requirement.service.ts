@@ -28,11 +28,11 @@ export class RequirementService {
 
   async create(data: RequirementCreateDto) {
     const { client_id, spoc_id, assigned_hr_id, ...rest } = data;
-    const clientId = client_id != null ? String(client_id) : undefined;
+    const clientId = client_id != null ? Number(client_id) : undefined;
     const spocId = spoc_id != null ? String(spoc_id) : undefined;
 
-    if (!clientId) {
-      throw new BadRequestException('client_id is required');
+    if (clientId == null || !Number.isInteger(clientId)) {
+      throw new BadRequestException('client_id is required and must be a valid number');
     }
     if (!spocId) {
       throw new BadRequestException('spoc_id is required');
@@ -68,7 +68,7 @@ export class RequirementService {
       spoc: { id: spocId },
       ...(assignedHr && { assignedHr }),
     });
-    const saved = await this.repo.save(requirement);
+    const saved = (await this.repo.save(requirement)) as Requirement;
     return this.repo.findOne({
       where: { id: saved.id },
       relations: ['client', 'spoc', 'assignedHr'],
@@ -87,7 +87,10 @@ export class RequirementService {
     const { client_id, spoc_id, assigned_hr_id, ...rest } = data;
 
     if (client_id != null) {
-      const clientId = String(client_id);
+      const clientId = Number(client_id);
+      if (!Number.isInteger(clientId)) {
+        throw new BadRequestException('client_id must be a valid number');
+      }
       const clientExists = await this.clientRepo.findOne({ where: { id: clientId } });
       if (!clientExists) {
         throw new NotFoundException(`Client with id ${clientId} not found`);
@@ -140,10 +143,11 @@ export class RequirementService {
   remove(id: number) {
     return this.repo.delete(id);
   }
-  findByClientId(id: string){
+  findByClientId(id: string | number) {
+    const clientId = Number(id);
     return this.repo.find({
-      where: { client: { id: id } },
-      relations: ['client','spoc','assignedHr'],
+      where: { client: { id: clientId } },
+      relations: ['client', 'spoc', 'assignedHr'],
     });
   }
 }

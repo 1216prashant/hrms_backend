@@ -18,6 +18,8 @@ import { CandidatesModule } from './modules/candidates/candidates.module';
 import { RequirementCandidatesModule } from './modules/requirement-candidates/requirement-candidates.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { ClientAgreementsModule } from './modules/client-agreements/client-agreements.module';
+import { ClientFinanceDetailsModule } from './modules/client-finance-details/client-finance-details.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { PaymentsModule } from './modules/payments/payments.module';
     RequirementCandidatesModule,
     InvoicesModule,
     PaymentsModule,
+    ClientAgreementsModule,
+    ClientFinanceDetailsModule,
     AuthModule,
   ],
   controllers: [AppController],

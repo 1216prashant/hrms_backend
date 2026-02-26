@@ -16,13 +16,14 @@ export class ClientsService {
     return this.repo.save(client);
   }
 
-  async update(data: Partial<Client>, id: string) {
-    const result = await this.repo.update(id, data);
+  async update(data: Partial<Client>, id: string | number) {
+    const clientId = Number(id);
+    const result = await this.repo.update(clientId, data);
     if (result.affected === 0) {
       throw new NotFoundException(`Client with id ${id} not found`);
     }
     return this.repo.findOne({
-      where: { id },
+      where: { id: clientId },
       relations: ['spocs', 'requirements'],
     });
   }
@@ -31,14 +32,15 @@ export class ClientsService {
     return this.repo.find({ relations: ['spocs', 'requirements'] });
   }
 
-  findOne(id: string) {
+  findOne(id: string | number) {
+    const clientId = Number(id);
     return this.repo.findOne({
-      where: { id },
+      where: { id: clientId },
       relations: ['spocs', 'requirements'],
     });
   }
 
-  remove(id: string) {
-    return this.repo.delete(id);
+  remove(id: string | number) {
+    return this.repo.delete(Number(id));
   }
 }
