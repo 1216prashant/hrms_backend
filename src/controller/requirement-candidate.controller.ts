@@ -38,6 +38,15 @@ export class RequirementCandidateController {
     return this.requirementCandidateService.findByRequirementId(requirementId);
   }
 
+  @Get('/requirement/:requirementId/pipeline')
+  @UseGuards(JwtAuthGuard)
+  @ApiMessage('Requirement pipeline fetched successfully')
+  getRequirementPipeline(
+    @Param('requirementId', ParseIntPipe) requirementId: number,
+  ) {
+    return this.requirementCandidateService.getRequirementPipeline(requirementId);
+  }
+
   @Get('/candidate/:candidateId')
   @UseGuards(JwtAuthGuard)
   getByCandidate(@Param('candidateId', ParseIntPipe) candidateId: number) {

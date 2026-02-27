@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RequirementCandidate } from 'src/database/entities/requirement-candidate.entity';
+import { RequirementCandidate, RequirementCandidateStatus } from 'src/database/entities/requirement-candidate.entity';
 import { Requirement } from 'src/database/entities/requirement.entity';
 import { Candidate } from 'src/database/entities/candidate.entity';
 import { CandidateStage } from 'src/database/entities/candidate-stage.entity';
@@ -30,7 +30,7 @@ export class RequirementCandidateService {
     private stageRepo: Repository<CandidateStage>,
   ) {}
 
-  private readonly relations = ['requirement', 'candidate', 'stage'] as const;
+  private readonly relations = ['requirement', 'candidate', 'stage','requirement.client'] as const;
 
   async findAll(): Promise<RequirementCandidate[]> {
     return this.repo.find({
@@ -53,7 +53,7 @@ export class RequirementCandidateService {
   async findByRequirementId(requirementId: number): Promise<RequirementCandidate[]> {
     return this.repo.find({
       where: { requirement: { id: requirementId } },
-      relations: [...this.relations],
+      relations: ['requirement.client'],
       order: { id: 'ASC' },
     });
   }
@@ -61,7 +61,7 @@ export class RequirementCandidateService {
   async findByCandidateId(candidateId: number): Promise<RequirementCandidate[]> {
     return this.repo.find({
       where: { candidate: { id: candidateId } },
-      relations: [...this.relations],
+      relations: ['requirement.client'],
       order: { id: 'ASC' },
     });
   }
@@ -106,7 +106,7 @@ export class RequirementCandidateService {
     const saved = await this.repo.save(rc);
     return this.repo.findOne({
       where: { id: saved.id },
-      relations: [...this.relations],
+      relations: ['requirement.client'],
     }) as Promise<RequirementCandidate>;
   }
 
@@ -148,5 +148,112 @@ export class RequirementCandidateService {
   async remove(id: number): Promise<void> {
     const existing = await this.findOne(id);
     await this.repo.remove(existing);
+  }
+
+  async getRequirementPipeline(requirementId: number) {
+    const requirement = await this.requirementRepo.findOne({
+      where: { id: requirementId },
+      relations: ['client'],
+    });
+    if (!requirement) {
+      throw new NotFoundException(`Requirement with id ${requirementId} not found`);
+    }
+
+    const items = await this.findByRequirementId(requirementId);
+
+    const totalCandidates = items.length;
+    let active = 0;
+    let selected = 0;
+    let joined = 0;
+    let rejected = 0;
+
+    const stageMap = new Map<
+      number,
+      {
+        stageId: number;
+        stageName: string;
+        count: number;
+      }
+    >();
+
+    for (const rc of items) {
+      const status = rc.status;
+      if (
+        status === RequirementCandidateStatus.ACTIVE ||
+        status === RequirementCandidateStatus.IN_PROCESS
+      ) {
+        active += 1;
+      } else if (status === RequirementCandidateStatus.SELECTED) {
+        selected += 1;
+      } else if (status === RequirementCandidateStatus.JOINED) {
+        joined += 1;
+      } else if (status === RequirementCandidateStatus.REJECTED) {
+        rejected += 1;
+      }
+
+      if (rc.stage) {
+        const id = rc.stage.id;
+        const entry = stageMap.get(id) ?? {
+          stageId: id,
+          stageName: rc.stage.name,
+          count: 0,
+        };
+        entry.count += 1;
+        stageMap.set(id, entry);
+      }
+    }
+
+    const stageSummary = Array.from(stageMap.values()).sort(
+      (a, b) => a.stageId - b.stageId,
+    );
+
+    const data = items.map((rc) => {
+      const c = rc.candidate;
+      return {
+        applicationId: rc.id,
+        candidate: c && {
+          id: c.id,
+          fullName: c.fullName,
+          phone: c.phone,
+          email: c.email,
+          experienceYears: c.experienceYears,
+          currentCompany: c.currentCompany,
+          currentCTC: c.currentCtc,
+          expectedCTC: c.expectedCtc,
+        },
+        stage: rc.stage && {
+          id: rc.stage.id,
+          name: rc.stage.name,
+        },
+        status: rc.status,
+        offeredCTC: rc.offeredCtc,
+        finalCTC: rc.finalCtc,
+        joiningDate: rc.joiningDate,
+        replacementFlag: Boolean(rc.replacementFlag),
+        replacementDueDate: rc.replacementDueDate,
+        createdAt: rc.createdAt,
+      };
+    });
+
+    return {
+      success: true,
+      requirement: {
+        id: requirement.id,
+        jobTitle: requirement.jobTitle,
+        clientName: requirement.client?.companyName ?? null,
+        totalPositions: requirement.totalPositions,
+        filledPositions: requirement.closedPositions,
+        status: requirement.status,
+      },
+      summary: {
+        totalCandidates,
+        active,
+        selected,
+        joined,
+        rejected,
+      },
+      stageSummary,
+      data,
+    };
   }
 }

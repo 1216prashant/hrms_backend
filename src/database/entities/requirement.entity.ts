@@ -53,6 +53,12 @@ export class Requirement {
   @Column({ name: 'total_positions' })
   totalPositions: number;
 
+  @Column({ name: 'open_positions' })
+  openPositions: number;
+
+  @Column({ name: 'closed_positions' })
+  closedPositions: number;
+
   @Column()
   budget: number;
 
