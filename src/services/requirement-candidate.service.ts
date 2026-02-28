@@ -53,7 +53,7 @@ export class RequirementCandidateService {
   async findByRequirementId(requirementId: number): Promise<RequirementCandidate[]> {
     return this.repo.find({
       where: { requirement: { id: requirementId } },
-      relations: ['requirement.client'],
+      relations: [...this.relations],
       order: { id: 'ASC' },
     });
   }
@@ -61,7 +61,7 @@ export class RequirementCandidateService {
   async findByCandidateId(candidateId: number): Promise<RequirementCandidate[]> {
     return this.repo.find({
       where: { candidate: { id: candidateId } },
-      relations: ['requirement.client'],
+      relations: [...this.relations],
       order: { id: 'ASC' },
     });
   }
@@ -106,7 +106,7 @@ export class RequirementCandidateService {
     const saved = await this.repo.save(rc);
     return this.repo.findOne({
       where: { id: saved.id },
-      relations: ['requirement.client'],
+      relations: [...this.relations],
     }) as Promise<RequirementCandidate>;
   }
 

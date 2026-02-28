@@ -21,6 +21,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { ClientAgreementsModule } from './modules/client-agreements/client-agreements.module';
 import { ClientFinanceDetailsModule } from './modules/client-finance-details/client-finance-details.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { StagesModule } from './modules/stages/stages.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { UploadModule } from './modules/upload/upload.module';
     ClientFinanceDetailsModule,
     UploadModule,
     AuthModule,
+    StagesModule,
   ],
   controllers: [AppController],
   providers: [
