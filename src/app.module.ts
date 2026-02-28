@@ -22,6 +22,7 @@ import { ClientAgreementsModule } from './modules/client-agreements/client-agree
 import { ClientFinanceDetailsModule } from './modules/client-finance-details/client-finance-details.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { StagesModule } from './modules/stages/stages.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { StagesModule } from './modules/stages/stages.module';
     UploadModule,
     AuthModule,
     StagesModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
