@@ -14,7 +14,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirementCandidateService } from 'src/services/requirement-candidate.service';
 import type { RequirementCandidateCreateDto } from 'src/services/requirement-candidate.service';
 
-@Controller('requirement-candidates')
+@Controller('candidates-applications')
 export class RequirementCandidateController {
   constructor(
     private readonly requirementCandidateService: RequirementCandidateService,
@@ -32,19 +32,19 @@ export class RequirementCandidateController {
     return this.requirementCandidateService.findOne(id);
   }
 
-  @Get('/requirement/:requirementId')
+  @Get('/application/:applicationId')
   @UseGuards(JwtAuthGuard)
-  getByRequirement(@Param('requirementId', ParseIntPipe) requirementId: number) {
-    return this.requirementCandidateService.findByRequirementId(requirementId);
+  getByApplication(@Param('applicationId', ParseIntPipe) applicationId: number) {
+    return this.requirementCandidateService.findByApplicationId(applicationId);
   }
 
-  @Get('/requirement/:requirementId/pipeline')
+  @Get('/application/:applicationId/pipeline')
   @UseGuards(JwtAuthGuard)
   @ApiMessage('Requirement pipeline fetched successfully')
   getRequirementPipeline(
-    @Param('requirementId', ParseIntPipe) requirementId: number,
+    @Param('applicationId', ParseIntPipe) applicationId: number,
   ) {
-    return this.requirementCandidateService.getRequirementPipeline(requirementId);
+    return this.requirementCandidateService.getApplicationPipeline(applicationId);
   }
 
   @Get('/candidate/:candidateId')

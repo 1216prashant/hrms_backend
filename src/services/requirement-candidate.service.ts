@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RequirementCandidate, RequirementCandidateStatus } from 'src/database/entities/requirement-candidate.entity';
-import { Requirement } from 'src/database/entities/requirement.entity';
+import { Requirement, RequirementStatus } from 'src/database/entities/requirement.entity';
 import { Candidate } from 'src/database/entities/candidate.entity';
 import { CandidateStage } from 'src/database/entities/candidate-stage.entity';
 
@@ -23,7 +23,7 @@ export class RequirementCandidateService {
     @InjectRepository(RequirementCandidate)
     private repo: Repository<RequirementCandidate>,
     @InjectRepository(Requirement)
-    private requirementRepo: Repository<Requirement>,
+    private applicationRepo: Repository<Requirement>,
     @InjectRepository(Candidate)
     private candidateRepo: Repository<Candidate>,
     @InjectRepository(CandidateStage)
@@ -31,6 +31,27 @@ export class RequirementCandidateService {
   ) {}
 
   private readonly relations = ['requirement', 'candidate', 'stage','requirement.client'] as const;
+
+  private static isJoinedStage(stage: CandidateStage | null): boolean {
+    return stage != null && stage.name.toUpperCase() === 'JOINED';
+  }
+
+  private async updateRequirementOnCandidateJoined(
+    requirement: Requirement,
+  ): Promise<void> {
+    const open = Math.max(0, requirement.openPositions - 1);
+    const closed = Math.min(
+      requirement.totalPositions,
+      requirement.closedPositions + 1,
+    );
+    requirement.openPositions = open;
+    requirement.closedPositions = closed;
+    requirement.status =
+      closed >= requirement.totalPositions
+        ? RequirementStatus.CLOSED
+        : RequirementStatus.PARTIALLY_CLOSED;
+    await this.applicationRepo.save(requirement);
+  }
 
   async findAll(): Promise<RequirementCandidate[]> {
     return this.repo.find({
@@ -50,7 +71,7 @@ export class RequirementCandidateService {
     return rc;
   }
 
-  async findByRequirementId(requirementId: number): Promise<RequirementCandidate[]> {
+  async findByApplicationId(requirementId: number): Promise<RequirementCandidate[]> {
     return this.repo.find({
       where: { requirement: { id: requirementId } },
       relations: [...this.relations],
@@ -71,7 +92,7 @@ export class RequirementCandidateService {
     const { candidate_id, stage_id, requirement_id, ...rest } = data;
 
     const [requirement, candidate, stage] = await Promise.all([
-      this.requirementRepo.findOne({ where: { id: requirementId } }),
+      this.applicationRepo.findOne({ where: { id: requirementId } }),
       this.candidateRepo.findOne({ where: { id: candidate_id } }),
       this.stageRepo.findOne({ where: { id: stage_id } }),
     ]);
@@ -103,6 +124,10 @@ export class RequirementCandidateService {
       candidate,
       stage,
     });
+    if (RequirementCandidateService.isJoinedStage(stage)) {
+      rc.status = RequirementCandidateStatus.JOINED;
+      await this.updateRequirementOnCandidateJoined(requirement);
+    }
     const saved = await this.repo.save(rc);
     return this.repo.findOne({
       where: { id: saved.id },
@@ -115,11 +140,12 @@ export class RequirementCandidateService {
     data: Partial<RequirementCandidateCreateDto>,
   ): Promise<RequirementCandidate> {
     const existing = await this.findOne(id);
+    const previousStage = existing.stage;
     const { requirement_id, candidate_id, stage_id, ...rest } = data;
 
     if (requirement_id != null) {
       const rid = Number(requirement_id);
-      const requirement = await this.requirementRepo.findOne({ where: { id: rid } });
+      const requirement = await this.applicationRepo.findOne({ where: { id: rid } });
       if (!requirement) {
         throw new NotFoundException(`Requirement with id ${rid} not found`);
       }
@@ -132,12 +158,24 @@ export class RequirementCandidateService {
       }
       existing.candidate = candidate;
     }
+    let newStage: CandidateStage | null = null;
     if (stage_id != null) {
       const stage = await this.stageRepo.findOne({ where: { id: stage_id } });
       if (!stage) {
         throw new NotFoundException(`Candidate stage with id ${stage_id} not found`);
       }
       existing.stage = stage;
+      newStage = stage;
+    }
+
+    const newlyJoined =
+      newStage != null &&
+      RequirementCandidateService.isJoinedStage(newStage) &&
+      !RequirementCandidateService.isJoinedStage(previousStage);
+    if (newlyJoined) {
+      existing.status = RequirementCandidateStatus.JOINED;
+      const requirement = existing.requirement;
+      await this.updateRequirementOnCandidateJoined(requirement);
     }
 
     Object.assign(existing, rest);
@@ -150,16 +188,16 @@ export class RequirementCandidateService {
     await this.repo.remove(existing);
   }
 
-  async getRequirementPipeline(requirementId: number) {
-    const requirement = await this.requirementRepo.findOne({
-      where: { id: requirementId },
+  async getApplicationPipeline(applicationId: number) {
+    const application = await this.applicationRepo.findOne({
+      where: { id: applicationId },
       relations: ['client'],
     });
-    if (!requirement) {
-      throw new NotFoundException(`Requirement with id ${requirementId} not found`);
+    if (!application) {
+      throw new NotFoundException(`Application with id ${applicationId} not found`);
     }
 
-    const items = await this.findByRequirementId(requirementId);
+    const items = await this.findByApplicationId(applicationId);
 
     const totalCandidates = items.length;
     let active = 0;
@@ -237,13 +275,13 @@ export class RequirementCandidateService {
 
     return {
       success: true,
-      requirement: {
-        id: requirement.id,
-        jobTitle: requirement.jobTitle,
-        clientName: requirement.client?.companyName ?? null,
-        totalPositions: requirement.totalPositions,
-        filledPositions: requirement.closedPositions,
-        status: requirement.status,
+      application: {
+        id: application.id,
+        jobTitle: application.jobTitle,
+        clientName: application.client?.companyName ?? null,
+        totalPositions: application.totalPositions,
+        filledPositions: application.closedPositions,
+        status: application.status,
       },
       summary: {
         totalCandidates,
