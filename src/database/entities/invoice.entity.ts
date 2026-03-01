@@ -13,6 +13,7 @@ import { BillingModel } from './requirement.entity';
 
 export enum InvoiceStatus {
   RAISED = 'RAISED',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
   PAID = 'PAID',
   OVERDUE = 'OVERDUE',
 }

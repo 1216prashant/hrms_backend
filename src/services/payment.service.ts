@@ -37,8 +37,13 @@ export class PaymentService {
 
     invoice.amountPaid = Math.round(amountPaid * 100) / 100;
     invoice.balanceDue = balanceDue;
-    invoice.status =
-      balanceDue <= 0 ? InvoiceStatus.PAID : InvoiceStatus.RAISED;
+    if (balanceDue <= 0) {
+      invoice.status = InvoiceStatus.PAID;
+    } else if (amountPaid > 0) {
+      invoice.status = InvoiceStatus.PARTIALLY_PAID;
+    } else {
+      invoice.status = InvoiceStatus.RAISED;
+    }
     await this.invoiceRepo.save(invoice);
   }
 

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Invoice } from 'src/database/entities/invoice.entity';
 import { Requirement } from 'src/database/entities/requirement.entity';
 import { Candidate } from 'src/database/entities/candidate.entity';
@@ -104,8 +104,20 @@ export class InvoiceService {
     });
   }
 
-  findAll() {
+  findAll(status?: string) {
+    const normalized = status?.toLowerCase();
+    let where: { status: InvoiceStatus | ReturnType<typeof In> } | undefined;
+    if (normalized === 'raised') {
+      where = { status: In([InvoiceStatus.RAISED, InvoiceStatus.PARTIALLY_PAID]) };
+    } else if (normalized === 'paid') {
+      where = { status: InvoiceStatus.PAID };
+    } else if (normalized === 'overdue') {
+      where = { status: InvoiceStatus.OVERDUE };
+    } else if (normalized === 'partially_paid') {
+      where = { status: InvoiceStatus.PARTIALLY_PAID };
+    }
     return this.repo.find({
+      where,
       relations: ['requirement', 'candidate'],
       order: { id: 'ASC' },
     });
