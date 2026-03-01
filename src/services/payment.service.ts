@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from 'src/database/entities/payment.entity';
@@ -17,6 +17,31 @@ export class PaymentService {
     private invoiceRepo: Repository<Invoice>,
   ) {}
 
+  /**
+   * Recalculates amount_paid (sum of all payments) and balance_due (total_amount - amount_paid)
+   * for the given invoice and updates status to PAID when balance_due <= 0.
+   */
+  async recalculateInvoiceAmounts(invoiceId: number): Promise<void> {
+    const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
+    if (!invoice) return;
+
+    const payments = await this.repo.find({
+      where: { invoice: { id: invoiceId } },
+    });
+    const amountPaid = payments.reduce(
+      (sum, p) => sum + Number(p.amount ?? 0),
+      0,
+    );
+    const totalAmount = Number(invoice.totalAmount ?? 0);
+    const balanceDue = Math.round((totalAmount - amountPaid) * 100) / 100;
+
+    invoice.amountPaid = Math.round(amountPaid * 100) / 100;
+    invoice.balanceDue = balanceDue;
+    invoice.status =
+      balanceDue <= 0 ? InvoiceStatus.PAID : InvoiceStatus.RAISED;
+    await this.invoiceRepo.save(invoice);
+  }
+
   async create(data: PaymentCreateDto) {
     const { invoice_id, ...rest } = data;
 
@@ -29,19 +54,13 @@ export class PaymentService {
       throw new NotFoundException(`Invoice with id ${invoice_id} not found`);
     }
 
-    const existing = await this.repo.findOne({ where: { invoice: { id: invoice_id } } });
-    if (existing) {
-      throw new ConflictException(`Payment already exists for invoice ${invoice_id}`);
-    }
-
     const payment = this.repo.create({
       ...rest,
       invoice,
     });
     const saved = await this.repo.save(payment);
 
-    invoice.status = InvoiceStatus.PAID;
-    await this.invoiceRepo.save(invoice);
+    await this.recalculateInvoiceAmounts(invoice_id);
 
     return this.repo.findOne({
       where: { id: saved.id },
@@ -59,6 +78,7 @@ export class PaymentService {
     }
 
     const { invoice_id, ...rest } = data;
+    const previousInvoiceId = existing.invoice?.id;
 
     if (invoice_id != null) {
       const invoice = await this.invoiceRepo.findOne({ where: { id: invoice_id } });
@@ -70,6 +90,15 @@ export class PaymentService {
 
     Object.assign(existing, rest);
     await this.repo.save(existing);
+
+    await this.recalculateInvoiceAmounts(existing.invoice.id);
+    if (
+      previousInvoiceId != null &&
+      previousInvoiceId !== existing.invoice.id
+    ) {
+      await this.recalculateInvoiceAmounts(previousInvoiceId);
+    }
+
     return this.repo.findOne({
       where: { id },
       relations: ['invoice'],
@@ -90,14 +119,26 @@ export class PaymentService {
     });
   }
 
-  remove(id: number) {
-    return this.repo.delete(id);
+  async remove(id: number) {
+    const payment = await this.repo.findOne({
+      where: { id },
+      relations: ['invoice'],
+    });
+    if (!payment) {
+      throw new NotFoundException(`Payment with id ${id} not found`);
+    }
+    const invoiceId = payment.invoice?.id;
+    await this.repo.delete(id);
+    if (invoiceId != null) {
+      await this.recalculateInvoiceAmounts(invoiceId);
+    }
   }
 
   findByInvoiceId(invoiceId: number) {
-    return this.repo.findOne({
+    return this.repo.find({
       where: { invoice: { id: invoiceId } },
       relations: ['invoice'],
+      order: { id: 'ASC' },
     });
   }
 }

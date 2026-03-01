@@ -81,6 +81,12 @@ export class Invoice {
   @Column({ type: 'enum', enum: InvoiceStatus })
   status: InvoiceStatus;
 
+  @Column({ name: 'amount_paid', type: 'decimal', precision: 12, scale: 2 })
+  amountPaid:number
+
+  @Column({ name: 'balance_due', type: 'decimal', precision: 12, scale: 2 })
+  balanceDue:number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

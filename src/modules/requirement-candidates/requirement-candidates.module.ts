@@ -7,11 +7,13 @@ import { CandidateStage } from 'src/database/entities/candidate-stage.entity';
 import { RequirementCandidateController } from 'src/controller/requirement-candidate.controller';
 import { RequirementCandidateService } from 'src/services/requirement-candidate.service';
 import { AuthModule } from '../auth/auth.module';
+import { InvoicesModule } from '../invoices/invoices.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([RequirementCandidate, Requirement, Candidate, CandidateStage]),
     AuthModule,
+    InvoicesModule,
   ],
   providers: [RequirementCandidateService],
   controllers: [RequirementCandidateController],

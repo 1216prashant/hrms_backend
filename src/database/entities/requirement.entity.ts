@@ -38,6 +38,10 @@ export class Requirement {
   @JoinColumn({ name: 'spoc_id' })
   spoc: ClientSpoc;
 
+  @Column({ name: 'override_billing_model', type: 'boolean', default: false })
+  overrideBillingModel: boolean;
+
+
   @Column({ name: 'job_title', length: 255 })
   jobTitle: string;
 

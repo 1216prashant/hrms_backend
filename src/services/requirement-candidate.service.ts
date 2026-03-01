@@ -10,6 +10,7 @@ import { RequirementCandidate, RequirementCandidateStatus } from 'src/database/e
 import { Requirement, RequirementStatus } from 'src/database/entities/requirement.entity';
 import { Candidate } from 'src/database/entities/candidate.entity';
 import { CandidateStage } from 'src/database/entities/candidate-stage.entity';
+import { InvoiceService } from 'src/services/invoice.service';
 
 export type RequirementCandidateCreateDto = Partial<RequirementCandidate> & {
   requirement_id: number;
@@ -28,6 +29,7 @@ export class RequirementCandidateService {
     private candidateRepo: Repository<Candidate>,
     @InjectRepository(CandidateStage)
     private stageRepo: Repository<CandidateStage>,
+    private invoiceService: InvoiceService,
   ) {}
 
   private readonly relations = ['requirement', 'candidate', 'stage','requirement.client'] as const;
@@ -44,6 +46,7 @@ export class RequirementCandidateService {
       requirement.totalPositions,
       requirement.closedPositions + 1,
     );
+    const previousStatus = requirement.status;
     requirement.openPositions = open;
     requirement.closedPositions = closed;
     requirement.status =
@@ -51,6 +54,9 @@ export class RequirementCandidateService {
         ? RequirementStatus.CLOSED
         : RequirementStatus.PARTIALLY_CLOSED;
     await this.applicationRepo.save(requirement);
+    if (requirement.status === RequirementStatus.CLOSED && previousStatus !== RequirementStatus.CLOSED) {
+      await this.invoiceService.createInvoicesForClosedRequirement(requirement.id);
+    }
   }
 
   async findAll(): Promise<RequirementCandidate[]> {

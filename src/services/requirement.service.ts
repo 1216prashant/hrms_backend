@@ -2,9 +2,10 @@ import { Injectable, NotFoundException, BadRequestException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { ClientSpoc } from "src/database/entities/client-spoc.entity";
 import { Client } from "src/database/entities/client.entity";
-import { Requirement } from "src/database/entities/requirement.entity";
+import { Requirement, RequirementStatus } from "src/database/entities/requirement.entity";
 import { User } from "src/database/entities/user.entity";
 import { Repository } from "typeorm";
+import { InvoiceService } from "src/services/invoice.service";
 
 type RequirementCreateDto = Partial<Requirement> & {
   client_id?: string | number;
@@ -24,6 +25,7 @@ export class RequirementService {
     private spocRepo: Repository<ClientSpoc>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    private invoiceService: InvoiceService,
   ) {}
 
   async create(data: RequirementCreateDto) {
@@ -121,8 +123,12 @@ export class RequirementService {
       }
     }
 
+    const previousStatus = existing.status;
     Object.assign(existing, rest);
     await this.repo.save(existing);
+    if (existing.status === RequirementStatus.CLOSED && previousStatus !== RequirementStatus.CLOSED) {
+      await this.invoiceService.createInvoicesForClosedRequirement(id);
+    }
     return this.repo.findOne({
       where: { id },
       relations: ['client', 'spoc', 'assignedHr'],

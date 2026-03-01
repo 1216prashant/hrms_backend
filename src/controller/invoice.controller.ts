@@ -51,6 +51,16 @@ export class InvoiceController {
     return this.invoiceService.findOne(id);
   }
 
+  @Post('/generate-for-requirement/:requirementId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiMessage('Invoices generated for requirement successfully')
+  generateInvoicesForRequirement(
+    @Param('requirementId', ParseIntPipe) requirementId: number,
+  ) {
+    return this.invoiceService.createInvoicesForClosedRequirement(requirementId);
+  }
+
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
