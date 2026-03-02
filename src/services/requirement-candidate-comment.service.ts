@@ -125,9 +125,9 @@ export class RequirementCandidateCommentService {
     return this.repo.delete(id);
   }
 
-  findByRequirementCandidateId(requirementCandidateId: number) {
+  findByApplicationId(applicationId: number) {
     return this.repo.find({
-      where: { requirementCandidate: { id: requirementCandidateId } },
+      where: { requirementCandidate: { id: applicationId } },
       relations: ['requirementCandidate', 'user'],
       order: { id: 'ASC' },
     });

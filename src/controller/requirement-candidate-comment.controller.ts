@@ -17,7 +17,7 @@ import { RequirementCandidateCommentService } from 'src/services/requirement-can
 import type { RequirementCandidateCommentCreateDto } from 'src/services/requirement-candidate-comment.service';
 import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 
-@Controller('requirement-candidate-comments')
+@Controller('application-comments')
 export class RequirementCandidateCommentController {
   constructor(
     private readonly requirementCandidateCommentService: RequirementCandidateCommentService,
@@ -29,13 +29,13 @@ export class RequirementCandidateCommentController {
     return this.requirementCandidateCommentService.findAll();
   }
 
-  @Get('/requirement-candidate/:requirementCandidateId')
+  @Get('/application/:applicationId')
   @UseGuards(JwtAuthGuard)
   getByRequirementCandidate(
-    @Param('requirementCandidateId', ParseIntPipe) requirementCandidateId: number,
+    @Param('applicationId', ParseIntPipe) applicationId: number,
   ) {
-    return this.requirementCandidateCommentService.findByRequirementCandidateId(
-      requirementCandidateId,
+    return this.requirementCandidateCommentService.findByApplicationId(
+      applicationId,
     );
   }
 
