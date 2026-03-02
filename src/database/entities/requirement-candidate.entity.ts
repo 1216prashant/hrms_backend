@@ -77,6 +77,9 @@ export class RequirementCandidate {
   @Column({ name: 'replacement_due_date', type: 'date', nullable: true })
   replacementDueDate: Date | null;
 
+  @Column({ name: 'remarks', type: 'text', nullable: true })
+  remarks: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

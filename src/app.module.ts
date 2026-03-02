@@ -23,6 +23,7 @@ import { ClientFinanceDetailsModule } from './modules/client-finance-details/cli
 import { UploadModule } from './modules/upload/upload.module';
 import { StagesModule } from './modules/stages/stages.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { RequirementCandidateCommentsModule } from './modules/requirement-candidate-comments/requirement-candidate-comments.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     AuthModule,
     StagesModule,
     DashboardModule,
+    RequirementCandidateCommentsModule,
   ],
   controllers: [AppController],
   providers: [
