@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
@@ -10,6 +11,7 @@ import {
 import { Requirement } from './requirement.entity';
 import { Candidate } from './candidate.entity';
 import { CandidateStage } from './candidate-stage.entity';
+import { RequirementCandidateComment } from './requirement-candidate-comment.entity';
 
 export enum RequirementCandidateStatus {
   ACTIVE = 'ACTIVE',
@@ -36,6 +38,9 @@ export class RequirementCandidate {
   @ManyToOne(() => CandidateStage, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'stage_id' })
   stage: CandidateStage;
+
+  @OneToMany(() => RequirementCandidateComment, (c) => c.requirementCandidate)
+  comments: RequirementCandidateComment[];
 
   @Column({
     name: 'offered_ctc',
@@ -77,8 +82,8 @@ export class RequirementCandidate {
   @Column({ name: 'replacement_due_date', type: 'date', nullable: true })
   replacementDueDate: Date | null;
 
-  @Column({ name: 'remarks', type: 'text', nullable: true })
-  remarks: string | null;
+  // @Column({ name: 'remarks', type: 'text', nullable: true })
+  // remarks: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

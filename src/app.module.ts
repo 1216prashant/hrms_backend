@@ -24,6 +24,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { StagesModule } from './modules/stages/stages.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { RequirementCandidateCommentsModule } from './modules/requirement-candidate-comments/requirement-candidate-comments.module';
+import { RequirementStatusLogsModule } from './modules/requirement-status-logs/requirement-status-logs.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { RequirementCandidateCommentsModule } from './modules/requirement-candid
     StagesModule,
     DashboardModule,
     RequirementCandidateCommentsModule,
+    RequirementStatusLogsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -8,12 +8,18 @@ import { RequirementCandidateController } from 'src/controller/requirement-candi
 import { RequirementCandidateService } from 'src/services/requirement-candidate.service';
 import { AuthModule } from '../auth/auth.module';
 import { InvoicesModule } from '../invoices/invoices.module';
+import { RequirementCandidateCommentsModule } from '../requirement-candidate-comments/requirement-candidate-comments.module';
+import { RequirementModule } from '../requirements/requirements.module';
+import { RequirementStatusLogsModule } from '../requirement-status-logs/requirement-status-logs.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([RequirementCandidate, Requirement, Candidate, CandidateStage]),
     AuthModule,
     InvoicesModule,
+    RequirementCandidateCommentsModule,
+    RequirementModule,
+    RequirementStatusLogsModule,
   ],
   providers: [RequirementCandidateService],
   controllers: [RequirementCandidateController],

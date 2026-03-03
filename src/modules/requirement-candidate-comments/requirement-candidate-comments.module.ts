@@ -18,5 +18,6 @@ import { AuthModule } from '../auth/auth.module';
   ],
   providers: [RequirementCandidateCommentService],
   controllers: [RequirementCandidateCommentController],
+  exports: [RequirementCandidateCommentService],
 })
 export class RequirementCandidateCommentsModule {}

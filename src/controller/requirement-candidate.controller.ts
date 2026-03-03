@@ -7,12 +7,15 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Req,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirementCandidateService } from 'src/services/requirement-candidate.service';
 import type { RequirementCandidateCreateDto } from 'src/services/requirement-candidate.service';
+import { EventReason } from 'src/database/entities/requirement-candidate-comment.entity';
 
 @Controller('candidates-applications')
 export class RequirementCandidateController {
@@ -56,8 +59,72 @@ export class RequirementCandidateController {
   @Post('/')
   @UseGuards(JwtAuthGuard)
   @ApiMessage('Requirement Candidate  Mapping created successfully')
-  create(@Body() data: RequirementCandidateCreateDto) {
-    return this.requirementCandidateService.create(data);
+  create(
+    @Body() data: RequirementCandidateCreateDto,
+    @Req() req: { user?: { id: string | number } },
+  ) {
+    const changedByUserId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.requirementCandidateService.create(data, changedByUserId);
+  }
+
+  /**
+   * Record replacement by requirement (job) id and candidate id.
+   * Use this when you have requirement_id and candidate_id; no need to know the internal application row id.
+   * Body: { requirement_id, candidate_id, event_reason }
+   */
+  @Post('/reopen-requirement')
+  @UseGuards(JwtAuthGuard)
+  @ApiMessage('Replacement recorded and requirement reopened successfully')
+  recordReplacementByRequirementAndCandidate(
+    @Body() body: {
+      requirement_id: number;
+      candidate_id: number;
+      event_reason: EventReason;
+    },
+    @Req() req: { user?: { id: string | number } },
+  ) {
+    if (body?.requirement_id == null || body?.candidate_id == null) {
+      throw new BadRequestException('requirement_id and candidate_id are required');
+    }
+    if (!body?.event_reason || !Object.values(EventReason).includes(body.event_reason)) {
+      throw new BadRequestException(
+        'event_reason is required and must be one of: RESIGNED, TERMINATED, ABSCONDED, CLIENT_REJECTED_AFTER_JOIN',
+      );
+    }
+    const changedByUserId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.requirementCandidateService.recordReplacementByRequirementAndCandidate(
+      body.requirement_id,
+      body.candidate_id,
+      body.event_reason,
+      changedByUserId,
+    );
+  }
+
+  /**
+   * Record replacement by application row id (requirement_candidate.id).
+   * Use when you already have the id of the candidate-application record.
+   * Body: { event_reason, candidate_id? } (candidate_id optional, for validation)
+   */
+  @Post('/:id/record-replacement')
+  @UseGuards(JwtAuthGuard)
+  @ApiMessage('Replacement recorded and requirement reopened successfully')
+  recordReplacement(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { event_reason: EventReason; candidate_id?: number },
+    @Req() req: { user?: { id: string | number } },
+  ) {
+    if (!body?.event_reason || !Object.values(EventReason).includes(body.event_reason)) {
+      throw new BadRequestException(
+        'event_reason is required and must be one of: RESIGNED, TERMINATED, ABSCONDED, CLIENT_REJECTED_AFTER_JOIN',
+      );
+    }
+    const changedByUserId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.requirementCandidateService.recordReplacement(
+      id,
+      body.event_reason,
+      body.candidate_id,
+      changedByUserId,
+    );
   }
 
   @Put('/:id')
@@ -66,8 +133,10 @@ export class RequirementCandidateController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() data: Partial<RequirementCandidateCreateDto>,
+    @Req() req: { user?: { id: string | number } },
   ) {
-    return this.requirementCandidateService.update(id, data);
+    const changedByUserId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.requirementCandidateService.update(id, data, changedByUserId);
   }
 
   @Delete('/:id')

@@ -5,9 +5,23 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RequirementCandidateComment } from 'src/database/entities/requirement-candidate-comment.entity';
+import {
+  RequirementCandidateComment,
+  CommentType,
+  EventReason,
+} from 'src/database/entities/requirement-candidate-comment.entity';
 import { RequirementCandidate } from 'src/database/entities/requirement-candidate.entity';
 import { User } from 'src/database/entities/user.entity';
+
+/** Default user id for system-generated comments (e.g. stage/status change). Ensure this user exists. */
+const DEFAULT_SYSTEM_USER_ID = 1;
+
+export type ApplicationEventCommentPayload = {
+  comment: string;
+  commentType: CommentType;
+  eventReason?: EventReason | null;
+  isInternal?: number | null;
+};
 
 export type RequirementCandidateCommentCreateDto = Partial<RequirementCandidateComment> & {
   requirement_candidate_id: number;
@@ -130,6 +144,36 @@ export class RequirementCandidateCommentService {
       where: { requirementCandidate: { id: applicationId } },
       relations: ['requirementCandidate', 'user'],
       order: { id: 'ASC' },
+    });
+  }
+
+  /**
+   * Adds an application event comment (e.g. stage change, dropped) without requiring user_id from API.
+   * Uses systemUserId (default 1) as the comment author. Use for auto-generated comments.
+   */
+  async addApplicationEventComment(
+    requirementCandidateId: number,
+    payload: ApplicationEventCommentPayload,
+    systemUserId: number = DEFAULT_SYSTEM_USER_ID,
+  ): Promise<RequirementCandidateComment | null> {
+    const rc = await this.requirementCandidateRepo.findOne({
+      where: { id: requirementCandidateId },
+    });
+    if (!rc) return null;
+    const user = await this.userRepo.findOne({ where: { id: systemUserId } });
+    if (!user) return null;
+    const comment = this.repo.create({
+      requirementCandidate: rc,
+      user,
+      comment: payload.comment,
+      commentType: payload.commentType,
+      eventReason: payload.eventReason ?? null,
+      isInternal: payload.isInternal ?? 1,
+    });
+    const saved = await this.repo.save(comment);
+    return this.repo.findOne({
+      where: { id: saved.id },
+      relations: ['requirementCandidate', 'user'],
     });
   }
 }

@@ -8,14 +8,17 @@ import { Requirement } from "src/database/entities/requirement.entity";
 import { RequirementController } from "src/controller/requirement.controller";
 import { RequirementService } from "src/services/requirement.service";
 import { InvoicesModule } from "../invoices/invoices.module";
+import { RequirementStatusLogsModule } from "../requirement-status-logs/requirement-status-logs.module";
 
 @Module({
     imports: [
       TypeOrmModule.forFeature([Requirement, Client, ClientSpoc, User]),
       AuthModule,
       InvoicesModule,
+      RequirementStatusLogsModule,
     ],
     providers: [RequirementService],
     controllers: [RequirementController],
+    exports: [RequirementService],
   })
   export class RequirementModule {}
