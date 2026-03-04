@@ -87,3 +87,61 @@ export interface DashboardResponse {
   finance: DashboardFinance;
   replacementRisk: ReplacementRiskItem[];
 }
+
+// HR dashboard (GET /dashboard/hr) response shape
+export interface HrDashboardFilters {
+  from: string;
+  to: string;
+}
+
+export interface HrMyPerformance {
+  hrId: number;
+  hrName: string;
+  activeRequirements: number;
+  requirementsHandled: number;
+  candidatesInPipeline: number;
+  joinedThisMonth: number;
+  offersReleased: number;
+  avgClosureDays: number;
+  conversionRate: number;
+}
+
+export interface HrPipeline {
+  stageDistribution: { stage: string; count: number }[];
+  candidateStatus: { status: string; count: number }[];
+}
+
+export interface HrOpenRequirement {
+  requirementId: number;
+  clientName: string;
+  jobTitle: string;
+  openPositions: number;
+  daysOpen: number;
+}
+
+export interface HrRequirements {
+  statusDistribution: { status: string; count: number }[];
+  myOpenRequirements: HrOpenRequirement[];
+}
+
+export interface HrActivitySummary {
+  candidatesAdded: number;
+  interviewsScheduled: number;
+  offersReleased: number;
+  candidatesJoined: number;
+}
+
+export interface HrAlerts {
+  replacementRisk: ReplacementRiskItem[];
+  staleRequirements: unknown[];
+  stuckCandidates: unknown[];
+}
+
+export interface HrDashboardData {
+  filters: HrDashboardFilters;
+  myPerformance: HrMyPerformance;
+  pipeline: HrPipeline;
+  requirements: HrRequirements;
+  activitySummary: HrActivitySummary;
+  alerts: HrAlerts;
+}

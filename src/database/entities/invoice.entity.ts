@@ -16,6 +16,7 @@ export enum InvoiceStatus {
   PARTIALLY_PAID = 'PARTIALLY_PAID',
   PAID = 'PAID',
   OVERDUE = 'OVERDUE',
+  CANCELLED='CANCELLED'
 }
 
 @Entity('invoices')

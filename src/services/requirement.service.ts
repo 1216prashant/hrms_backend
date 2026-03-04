@@ -175,7 +175,11 @@ export class RequirementService {
           CASE
             WHEN new_status IN ('OPEN', 'REOPENED')
             THEN DATEDIFF(
-              COALESCE(next_changed_at, CURRENT_DATE),
+              CASE
+                WHEN next_status = 'CLOSED'
+                THEN next_changed_at
+                ELSE CURRENT_DATE
+              END,
               changed_at
             )
             ELSE 0

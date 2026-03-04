@@ -20,6 +20,7 @@ export enum RequirementCandidateStatus {
   JOINED = 'JOINED',
   REJECTED = 'REJECTED',
   DROPPED = 'DROPPED',
+  ABSCONDED = 'ABSCONDED',
 }
 
 @Entity('requirement_candidates')
