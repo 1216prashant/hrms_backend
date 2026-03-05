@@ -13,10 +13,16 @@ import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 import { Express } from 'express';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { FileTransferService } from 'src/services/file-transfer.service';
 
-const UPLOAD_DEST = process.env.UPLOAD_DEST || '/home/u565561609/domains/hrms.pragoinfotech.in/public_html/uploads';
-const UPLOAD_DIR = path.isAbsolute(UPLOAD_DEST) ? UPLOAD_DEST : path.join(process.cwd(), UPLOAD_DEST);
+// When FTP is configured (e.g. on Render), use OS temp dir so we don't need write access to UPLOAD_DEST. Files are uploaded to Hostinger and then removed.
+const UPLOAD_DEST = process.env.UPLOAD_DEST || 'uploads';
+const UPLOAD_DIR = process.env.FTP_HOST
+  ? path.join(os.tmpdir(), 'hrms-uploads')
+  : path.isAbsolute(UPLOAD_DEST)
+    ? UPLOAD_DEST
+    : path.join(process.cwd(), UPLOAD_DEST);
 
 const SUBDIRS = {
   resume: 'resume',
