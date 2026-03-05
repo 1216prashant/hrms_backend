@@ -53,8 +53,13 @@ export interface HrPerformanceItem {
 }
 
 export interface FinanceAging {
+  /** Outstanding amount not yet due (due_date in the future) */
+  current: number;
+  /** 0–30 days overdue */
   '0_30': number;
+  /** 31–60 days overdue */
   '31_60': number;
+  /** 60+ days overdue */
   '60_plus': number;
 }
 

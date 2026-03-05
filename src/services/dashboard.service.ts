@@ -646,6 +646,7 @@ export class DashboardService {
       .createQueryBuilder('i')
       .select(
         `CASE
+          WHEN DATEDIFF(:today, i.due_date) < 0 THEN 'current'
           WHEN DATEDIFF(:today, i.due_date) BETWEEN 0 AND 30 THEN '0_30'
           WHEN DATEDIFF(:today, i.due_date) BETWEEN 31 AND 60 THEN '31_60'
           WHEN DATEDIFF(:today, i.due_date) > 60 THEN '60_plus'
@@ -653,18 +654,19 @@ export class DashboardService {
         END`,
         'bucket',
       )
-      .addSelect('COALESCE(SUM(i.total_amount), 0)', 'amount')
+      .addSelect('COALESCE(SUM(i.balance_due), 0)', 'amount')
       .where('i.status IN (:...statuses)', {
         statuses: [InvoiceStatus.RAISED, InvoiceStatus.OVERDUE],
       })
       .andWhere('i.status != :cancelled', { cancelled: InvoiceStatus.CANCELLED })
-      .andWhere('i.due_date <= :today', { today });
+      .setParameter('today', today);
     if (assignedHrId != null) {
       agingQb.innerJoin('requirements', 'r', 'r.id = i.requirement_id').andWhere('r.assigned_hr_id = :hrId', { hrId: assignedHrId });
     }
     const agingRows = await agingQb.groupBy('bucket').getRawMany<{ bucket: string; amount: string }>();
 
     const aging: DashboardFinance['aging'] = {
+      current: 0,
       '0_30': 0,
       '31_60': 0,
       '60_plus': 0,
