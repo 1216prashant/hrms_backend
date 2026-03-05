@@ -10,8 +10,14 @@ async function bootstrap() {
   const uploadDir = process.env.UPLOAD_DEST || 'uploads';
   const uploadPath = join(process.cwd(), uploadDir);
   app.useStaticAssets(uploadPath, { prefix: '/upload/' });
+
+  // CORS: set FRONTEND_URL on Render to your frontend origin, e.g. https://hrms.pragoinfotech.in (comma-separated for multiple).
+  const frontendUrls = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map((u) => u.trim().replace(/\/$/, '')).filter(Boolean)
+    : [];
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || true, // true = allow all origins (dev); set FRONTEND_URL in prod
+    origin: frontendUrls.length > 0 ? frontendUrls : true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
