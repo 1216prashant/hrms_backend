@@ -13,8 +13,9 @@ import { ApiMessage } from 'src/common/decorators/api-message.decorator';
 import { Express } from 'express';
 import * as path from 'path';
 import * as fs from 'fs';
+import { FileTransferService } from 'src/services/file-transfer.service';
 
-const UPLOAD_DEST = process.env.UPLOAD_DEST || 'uploads';
+const UPLOAD_DEST = process.env.UPLOAD_DEST || '/home/u565561609/domains/hrms.pragoinfotech.in/public_html/uploads';
 const UPLOAD_DIR = path.isAbsolute(UPLOAD_DEST) ? UPLOAD_DEST : path.join(process.cwd(), UPLOAD_DEST);
 
 const SUBDIRS = {
@@ -64,14 +65,18 @@ function fileResponse(
 
 @Controller('upload')
 export class UploadController {
+  constructor(private readonly fileTransferService: FileTransferService) {}
+
   /** Resume uploads – form field: "file" */
   @Post('resume')
   @UseGuards(JwtAuthGuard)
   @ApiMessage('Resume uploaded successfully')
   @UseInterceptors(FileInterceptor('file', multerOptions('resume')))
-  uploadResume(@UploadedFile() file: Express.Multer.File) {
+  async uploadResume(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file provided. Use form field name "file".');
-    return fileResponse(file, '/upload');
+    const response = fileResponse(file, '/upload');
+    const remoteUrl = await this.fileTransferService.uploadFileAndGetUrl(file.path, SUBDIRS.resume);
+    return { ...response, url: remoteUrl };
   }
 
   /** Client agreement file uploads – form field: "file" */
@@ -79,9 +84,11 @@ export class UploadController {
   @UseGuards(JwtAuthGuard)
   @ApiMessage('Client agreement file uploaded successfully')
   @UseInterceptors(FileInterceptor('file', multerOptions('agreement')))
-  uploadAgreement(@UploadedFile() file: Express.Multer.File) {
+  async uploadAgreement(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file provided. Use form field name "file".');
-    return fileResponse(file, '/upload/agreements');
+    const response = fileResponse(file, '/upload/agreements');
+    const remoteUrl = await this.fileTransferService.uploadFileAndGetUrl(file.path, SUBDIRS.agreement);
+    return { ...response, url: remoteUrl };
   }
 
   /** Requirement file uploads – form field: "file" */
@@ -89,8 +96,10 @@ export class UploadController {
   @UseGuards(JwtAuthGuard)
   @ApiMessage('Requirement file uploaded successfully')
   @UseInterceptors(FileInterceptor('file', multerOptions('requirement')))
-  uploadRequirement(@UploadedFile() file: Express.Multer.File) {
+  async uploadRequirement(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file provided. Use form field name "file".');
-    return fileResponse(file, '/upload/requirements');
+    const response = fileResponse(file, '/upload/requirements');
+    const remoteUrl = await this.fileTransferService.uploadFileAndGetUrl(file.path, SUBDIRS.requirement);
+    return { ...response, url: remoteUrl };
   }
 }
