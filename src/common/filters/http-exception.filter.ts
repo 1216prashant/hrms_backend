@@ -24,6 +24,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       `${request.method} ${request.url} ${statusCode} - ${message}`,
     );
 
+    // Ensure CORS headers on error responses so browser does not report CORS instead of the real error.
+    const origin = request.headers.origin as string | undefined;
+    if (!response.getHeader('Access-Control-Allow-Origin')) {
+      response.setHeader('Access-Control-Allow-Origin', origin || '*');
+      if (origin) response.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+
     response.status(statusCode).json(errorResponse(message, statusCode, data));
   }
 
