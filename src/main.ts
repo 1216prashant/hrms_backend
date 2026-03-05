@@ -9,26 +9,15 @@ import { Request, Response, NextFunction } from 'express';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // CORS middleware first: set headers on every response and handle preflight so no request fails CORS.
-  const frontendUrls = process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(',').map((u) => u.trim().replace(/\/$/, '')).filter(Boolean)
-    : [];
-
+  // CORS: allow any frontend origin (no whitelist).
   app.use((req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin as string | undefined;
-    const allowed =
-      origin &&
-      (frontendUrls.length === 0 || frontendUrls.some((url) => origin === url || origin === url.replace(/\/$/, '')));
-    if (allowed) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With');
-      res.setHeader('Access-Control-Max-Age', '86400');
-    }
-    if (req.method === 'OPTIONS') {
-      return res.status(204).end();
-    }
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    if (origin) res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    if (req.method === 'OPTIONS') return res.status(204).end();
     next();
   });
 
