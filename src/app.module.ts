@@ -21,6 +21,10 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { ClientAgreementsModule } from './modules/client-agreements/client-agreements.module';
 import { ClientFinanceDetailsModule } from './modules/client-finance-details/client-finance-details.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { StagesModule } from './modules/stages/stages.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { RequirementCandidateCommentsModule } from './modules/requirement-candidate-comments/requirement-candidate-comments.module';
+import { RequirementStatusLogsModule } from './modules/requirement-status-logs/requirement-status-logs.module';
 
 @Module({
   imports: [
@@ -47,6 +51,10 @@ import { UploadModule } from './modules/upload/upload.module';
     ClientFinanceDetailsModule,
     UploadModule,
     AuthModule,
+    StagesModule,
+    DashboardModule,
+    RequirementCandidateCommentsModule,
+    RequirementStatusLogsModule,
   ],
   controllers: [AppController],
   providers: [

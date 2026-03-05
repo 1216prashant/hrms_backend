@@ -38,6 +38,10 @@ export class Requirement {
   @JoinColumn({ name: 'spoc_id' })
   spoc: ClientSpoc;
 
+  @Column({ name: 'override_billing_model', type: 'boolean', default: false })
+  overrideBillingModel: boolean;
+
+
   @Column({ name: 'job_title', length: 255 })
   jobTitle: string;
 
@@ -52,6 +56,12 @@ export class Requirement {
 
   @Column({ name: 'total_positions' })
   totalPositions: number;
+
+  @Column({ name: 'open_positions' })
+  openPositions: number;
+
+  @Column({ name: 'closed_positions' })
+  closedPositions: number;
 
   @Column()
   budget: number;

@@ -9,6 +9,14 @@ import {
 } from 'typeorm';
 import { Invoice } from './invoice.entity';
 
+export enum PaymentMode {
+  CASH = 'CASH',
+  CHEQUE = 'CHEQUE',
+  ONLINE = 'BANK_TRANSFER',
+  UPI = 'UPI',
+  OTHER = 'OTHER',
+}
+
 @Entity('payments')
 export class Payment {
   @PrimaryGeneratedColumn()
@@ -25,10 +33,13 @@ export class Payment {
   paymentDate: Date;
 
   @Column({ name: 'payment_mode', length: 50, nullable: true })
-  paymentMode: string | null;
+  paymentMode: PaymentMode;
 
   @Column({ name: 'transaction_reference', length: 150, nullable: true })
   transactionReference: string | null;
+
+  @Column({ name: 'remarks', length: 255, nullable: true })
+  remarks: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

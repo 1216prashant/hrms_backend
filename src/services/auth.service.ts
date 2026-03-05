@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserRole } from 'src/database/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -46,5 +46,14 @@ export class AuthService {
 
   async findAllHrUsers() {
     return this.repo.find({ where: { role: UserRole.HR } });
+  }
+
+  async findOneById(id: number) {
+    const user = await this.repo.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    const { password: _p, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 }
