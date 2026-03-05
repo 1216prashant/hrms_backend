@@ -147,7 +147,7 @@ export class RequirementService {
 
   /**
    * Returns requirement_id -> total_active_days (sum of days in OPEN/REOPENED) for each id.
-   * Requirements with no OPEN/REOPENED periods are omitted (caller can treat as null).
+   * Each "open run" is counted once: from first OPEN/REOPENED to the last CLOSED that follows (so 3 Mar open → 5 Mar close = 2 days).
    */
   private async getTotalActiveDaysMap(requirementIds: number[]): Promise<Map<number, number>> {
     if (requirementIds.length === 0) return new Map();
@@ -158,34 +158,25 @@ export class RequirementService {
           requirement_id,
           new_status,
           changed_at,
-          LEAD(new_status) OVER (
+          LAG(new_status) OVER (PARTITION BY requirement_id ORDER BY changed_at) AS prev_status,
+          MAX(CASE WHEN new_status = 'CLOSED' THEN changed_at END) OVER (
             PARTITION BY requirement_id
             ORDER BY changed_at
-          ) AS next_status,
-          LEAD(changed_at) OVER (
-            PARTITION BY requirement_id
-            ORDER BY changed_at
-          ) AS next_changed_at
+            ROWS BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING
+          ) AS next_closed_at
         FROM requirement_status_logs
         WHERE requirement_id IN (${placeholders})
+      ),
+      run_starts AS (
+        SELECT requirement_id, changed_at, next_closed_at
+        FROM status_flow
+        WHERE new_status IN ('OPEN', 'REOPENED')
+          AND (prev_status IS NULL OR prev_status NOT IN ('OPEN', 'REOPENED'))
       )
       SELECT
         requirement_id,
-        SUM(
-          CASE
-            WHEN new_status IN ('OPEN', 'REOPENED')
-            THEN DATEDIFF(
-              CASE
-                WHEN next_status = 'CLOSED'
-                THEN next_changed_at
-                ELSE CURRENT_DATE
-              END,
-              changed_at
-            )
-            ELSE 0
-          END
-        ) AS total_tat_days
-      FROM status_flow
+        SUM(GREATEST(0, DATEDIFF(COALESCE(next_closed_at, CURRENT_DATE), changed_at))) AS total_tat_days
+      FROM run_starts
       GROUP BY requirement_id
     `;
     const rows = await this.repo.manager.query(sql, requirementIds) as { requirement_id: number; total_tat_days: number }[];

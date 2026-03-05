@@ -19,7 +19,7 @@ const UPLOAD_DEST = process.env.UPLOAD_DEST || '/home/u565561609/domains/hrms.pr
 const UPLOAD_DIR = path.isAbsolute(UPLOAD_DEST) ? UPLOAD_DEST : path.join(process.cwd(), UPLOAD_DEST);
 
 const SUBDIRS = {
-  resume: '',
+  resume: 'resume',
   agreement: 'agreements',
   requirement: 'requirements',
 } as const;
