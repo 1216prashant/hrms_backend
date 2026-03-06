@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -33,8 +34,12 @@ export class CandidateController {
   @Post('/')
   @UseGuards(JwtAuthGuard)
   @ApiMessage('Candidate created successfully')
-  createCandidate(@Body() data: Partial<Candidate>) {
-    return this.candidateService.create(data);
+  createCandidate(
+    @Body() data: Partial<Candidate>,
+    @Req() req: { user?: { id: string | number } },
+  ) {
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.candidateService.create(data, userId);
   }
 
   @Put('/:id')
@@ -43,14 +48,17 @@ export class CandidateController {
   updateCandidate(
     @Body() data: Partial<Candidate>,
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: { user?: { id: string | number } },
   ) {
-    return this.candidateService.update(id, data);
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.candidateService.update(id, data, userId);
   }
 
   @Delete('/:id')
   @UseGuards(JwtAuthGuard)
   @ApiMessage('Candidate deleted successfully')
-  deleteCandidate(@Param('id', ParseIntPipe) id: number) {
-    return this.candidateService.remove(id);
+  deleteCandidate(@Param('id', ParseIntPipe) id: number, @Req() req: { user?: { id: string | number } }) {
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.candidateService.remove(id, userId);
   }
 }

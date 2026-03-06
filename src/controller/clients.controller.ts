@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { ClientsService } from 'src/services/clients.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -28,8 +28,9 @@ export class ClientsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @ApiMessage('Client created successfully')
     @Roles(UserRole.ADMIN)
-    createClient(@Body() data: Partial<Client>){
-        return this.clientsService.create(data)
+    createClient(@Body() data: Partial<Client>, @Req() req: { user?: { id: string | number } }){
+        const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+        return this.clientsService.create(data, userId)
     }
 
     
@@ -37,16 +38,18 @@ export class ClientsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @ApiMessage('Client updated successfully')
-    updateClient(@Body() data: Partial<Client>, @Param('id') id: string ){
-        return this.clientsService.update(data,id)
+    updateClient(@Body() data: Partial<Client>, @Param('id') id: string, @Req() req: { user?: { id: string | number } }){
+        const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+        return this.clientsService.update(data,id, userId)
     }
 
     @Delete('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @ApiMessage('Client deleted successfully')
-    deleteClient(@Param('id') id: string ){
-        return this.clientsService.remove(id)
+    deleteClient(@Param('id') id: string, @Req() req: { user?: { id: string | number } }){
+        const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+        return this.clientsService.remove(id, userId)
     }
 
 }

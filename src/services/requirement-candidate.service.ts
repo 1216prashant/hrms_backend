@@ -15,6 +15,7 @@ import { RequirementCandidateCommentService } from 'src/services/requirement-can
 import { CommentType, EventReason } from 'src/database/entities/requirement-candidate-comment.entity';
 import { RequirementService } from 'src/services/requirement.service';
 import { RequirementStatusLogService } from 'src/services/requirement-status-log.service';
+import { User } from 'src/database/entities/user.entity';
 
 export type RequirementCandidateCreateDto = Partial<RequirementCandidate> & {
   requirement_id: number;
@@ -91,12 +92,15 @@ export class RequirementCandidateService {
     }
   }
 
-  async findAll(): Promise<RequirementCandidate[]> {
+  async findAll(userId?: number): Promise<RequirementCandidate[]> {
     const list = await this.repo.find({
-      relations: [...this.relations, 'comments', 'comments.user'],
+      relations: [...this.relations, 'comments', 'comments.user', 'createdByUser', 'updatedByUser'],
       order: { id: 'ASC' },
     });
-    list.forEach((rc) => {
+    list.forEach((rc) => {  if (userId != null) {
+      rc.createdByUser = { id: userId } as User;
+      rc.updatedByUser = { id: userId } as User;
+    }
       if (rc.comments?.length) {
         rc.comments.sort(
           (a, b) =>
@@ -110,7 +114,7 @@ export class RequirementCandidateService {
   async findOne(id: number): Promise<RequirementCandidate> {
     const rc = await this.repo.findOne({
       where: { id },
-      relations: [...this.relations, 'comments', 'comments.user'],
+      relations: [...this.relations, 'comments', 'comments.user', 'createdByUser', 'updatedByUser'],
     });
     if (!rc) {
       throw new NotFoundException(`RequirementCandidate with id ${id} not found`);
@@ -127,7 +131,7 @@ export class RequirementCandidateService {
   async findByApplicationId(requirementId: number): Promise<RequirementCandidate[]> {
     return this.repo.find({
       where: { requirement: { id: requirementId } },
-      relations: [...this.relations],
+      relations: [...this.relations, 'createdByUser', 'updatedByUser'],
       order: { id: 'ASC' },
     });
   }
@@ -135,7 +139,7 @@ export class RequirementCandidateService {
   async findByCandidateId(candidateId: number): Promise<RequirementCandidate[]> {
     return this.repo.find({
       where: { candidate: { id: candidateId } },
-      relations: [...this.relations],
+      relations: [...this.relations, 'createdByUser', 'updatedByUser'],
       order: { id: 'ASC' },
     });
   }
@@ -176,6 +180,10 @@ export class RequirementCandidateService {
       requirement,
       candidate,
       stage,
+      ...(changedByUserId != null && {
+        createdByUser: { id: changedByUserId } as User,
+        updatedByUser: { id: changedByUserId } as User,
+      }),
     });
     if (RequirementCandidateService.isJoinedStage(stage)) {
       rc.status = RequirementCandidateStatus.JOINED;
@@ -188,7 +196,7 @@ export class RequirementCandidateService {
     });
     return this.repo.findOne({
       where: { id: saved.id },
-      relations: [...this.relations],
+      relations: [...this.relations, 'createdByUser', 'updatedByUser'],
     }) as Promise<RequirementCandidate>;
   }
 
@@ -238,6 +246,9 @@ export class RequirementCandidateService {
     }
 
     Object.assign(existing, rest);
+    if (changedByUserId != null) {
+      existing.updatedByUser = { id: changedByUserId } as User;
+    }
     await this.repo.save(existing);
 
     await this.addApplicationChangeComments(id, {
@@ -291,9 +302,14 @@ export class RequirementCandidateService {
     }
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, userId?: number): Promise<RequirementCandidate> {
     const existing = await this.findOne(id);
-    await this.repo.remove(existing);
+    if (userId != null) {
+      existing.updatedByUser = { id: userId } as User;
+    }
+    existing.isDeleted = true;
+    await this.repo.save(existing);
+    return existing;
   }
 
   /**
@@ -367,6 +383,9 @@ export class RequirementCandidateService {
     rc.status = RequirementCandidateStatus.DROPPED;
     if (replacementStage) {
       rc.stage = replacementStage;
+    }
+    if (changedByUserId != null) {
+      rc.updatedByUser = { id: changedByUserId } as User;
     }
     await this.repo.save(rc);
 

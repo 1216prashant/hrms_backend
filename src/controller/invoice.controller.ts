@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -76,16 +77,19 @@ export class InvoiceController {
   @ApiMessage('Invoices generated for requirement successfully')
   generateInvoicesForRequirement(
     @Param('requirementId', ParseIntPipe) requirementId: number,
+    @Req() req: { user?: { id: string | number } }
   ) {
-    return this.invoiceService.createInvoicesForClosedRequirement(requirementId);
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.invoiceService.createInvoicesForClosedRequirement(requirementId, userId);
   }
 
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiMessage('Invoice created successfully')
-  createInvoice(@Body() data: Partial<Invoice> & { requirement_id: number; candidate_id: number }) {
-    return this.invoiceService.create(data);
+  createInvoice(@Body() data: Partial<Invoice> & { requirement_id: number; candidate_id: number }, @Req() req: { user?: { id: string | number } }) {
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.invoiceService.create(data, userId);
   }
 
   @Put('/:id')
@@ -95,15 +99,18 @@ export class InvoiceController {
   updateInvoice(
     @Body() data: Partial<Invoice> & { requirement_id?: number; candidate_id?: number },
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: { user?: { id: string | number } }
   ) {
-    return this.invoiceService.update(data, id);
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.invoiceService.update(data, id, userId);
   }
 
   @Delete('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiMessage('Invoice deleted successfully')
-  deleteInvoice(@Param('id', ParseIntPipe) id: number) {
-    return this.invoiceService.remove(id);
+  deleteInvoice(@Param('id', ParseIntPipe) id: number, @Req() req: { user?: { id: string | number } }) {
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.invoiceService.remove(id, userId);
   }
 }

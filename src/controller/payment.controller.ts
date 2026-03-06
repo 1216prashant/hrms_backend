@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -43,8 +44,9 @@ export class PaymentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiMessage('Payment created successfully')
-  createPayment(@Body() data: Partial<Payment> & { invoice_id: number }) {
-    return this.paymentService.create(data);
+  createPayment(@Body() data: Partial<Payment> & { invoice_id: number }, @Req() req: { user?: { id: string | number } }) {
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.paymentService.create(data, userId);
   }
 
   @Put('/:id')
@@ -54,15 +56,18 @@ export class PaymentController {
   updatePayment(
     @Body() data: Partial<Payment> & { invoice_id?: number },
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: { user?: { id: string | number } }
   ) {
-    return this.paymentService.update(data, id);
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.paymentService.update(data, id, userId);
   }
 
   @Delete('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiMessage('Payment deleted successfully')
-  deletePayment(@Param('id', ParseIntPipe) id: number) {
-    return this.paymentService.remove(id);
+  deletePayment(@Param('id', ParseIntPipe) id: number, @Req() req: { user?: { id: string | number } }) {
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+    return this.paymentService.remove(id, userId);
   }
 }
