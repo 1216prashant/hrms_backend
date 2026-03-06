@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from 'src/database/entities/payment.entity';
 import { Invoice, InvoiceStatus } from 'src/database/entities/invoice.entity';
+import { User } from 'src/database/entities/user.entity';
 
 type PaymentCreateDto = Partial<Payment> & {
   invoice_id: number;
@@ -47,7 +48,7 @@ export class PaymentService {
     await this.invoiceRepo.save(invoice);
   }
 
-  async create(data: PaymentCreateDto) {
+  async create(data: PaymentCreateDto, userId?: number) {
     const { invoice_id, ...rest } = data;
 
     if (invoice_id == null) {
@@ -62,6 +63,10 @@ export class PaymentService {
     const payment = this.repo.create({
       ...rest,
       invoice,
+      ...(userId != null && {
+        createdByUser: { id: userId } as User,
+        updatedByUser: { id: userId } as User,
+      }),
     });
     const saved = await this.repo.save(payment);
 
@@ -69,14 +74,14 @@ export class PaymentService {
 
     return this.repo.findOne({
       where: { id: saved.id },
-      relations: ['invoice'],
+      relations: ['invoice', 'createdByUser', 'updatedByUser'],
     });
   }
 
-  async update(data: Partial<PaymentCreateDto>, id: number) {
+  async update(data: Partial<PaymentCreateDto>, id: number, userId?: number) {
     const existing = await this.repo.findOne({
       where: { id },
-      relations: ['invoice'],
+      relations: ['invoice', 'createdByUser', 'updatedByUser'],
     });
     if (!existing) {
       throw new NotFoundException(`Payment with id ${id} not found`);
@@ -94,6 +99,9 @@ export class PaymentService {
     }
 
     Object.assign(existing, rest);
+    if (userId != null) {
+      existing.updatedByUser = { id: userId } as User;
+    }
     await this.repo.save(existing);
 
     await this.recalculateInvoiceAmounts(existing.invoice.id);
@@ -112,28 +120,32 @@ export class PaymentService {
 
   findAll() {
     return this.repo.find({
-      relations: ['invoice'],
-      order: { id: 'ASC' },
+      relations: ['invoice', 'createdByUser', 'updatedByUser'],
+      order: { id: 'DESC' },
     });
   }
 
   findOne(id: number) {
     return this.repo.findOne({
       where: { id },
-      relations: ['invoice'],
+      relations: ['invoice', 'createdByUser', 'updatedByUser'],
     });
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId?: number) {
     const payment = await this.repo.findOne({
       where: { id },
-      relations: ['invoice'],
+      relations: ['invoice', 'createdByUser', 'updatedByUser'],
     });
     if (!payment) {
       throw new NotFoundException(`Payment with id ${id} not found`);
     }
     const invoiceId = payment.invoice?.id;
-    await this.repo.delete(id);
+    if (userId != null) {
+      payment.updatedByUser = { id: userId } as User;
+    }
+    payment.isDeleted = true;
+    await this.repo.save(payment);
     if (invoiceId != null) {
       await this.recalculateInvoiceAmounts(invoiceId);
     }
@@ -142,7 +154,7 @@ export class PaymentService {
   findByInvoiceId(invoiceId: number) {
     return this.repo.find({
       where: { invoice: { id: invoiceId } },
-      relations: ['invoice'],
+      relations: ['invoice', 'createdByUser', 'updatedByUser'],
       order: { id: 'ASC' },
     });
   }

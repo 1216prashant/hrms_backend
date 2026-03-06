@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -35,24 +35,27 @@ export class ClientSpocController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @ApiMessage('Client SPOC created successfully')
-    createClientSpoc(@Body() data: Partial<ClientSpoc>){
-        return this.clientSpocService.create(data)
+    createClientSpoc(@Body() data: Partial<ClientSpoc>, @Req() req: { user?: { id: string | number } }){
+        const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+        return this.clientSpocService.create(data, userId)
     }
 
     @Put('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @ApiMessage('Client SPOC updated successfully')
-    updateClientSpoc(@Body() data: Partial<ClientSpoc>, @Param('id') id: string ){
-        return this.clientSpocService.update(data,id)
+    updateClientSpoc(@Body() data: Partial<ClientSpoc>, @Param('id') id: string, @Req() req: { user?: { id: string | number } }){
+        const userId = req.user?.id != null ? Number(req.user.id) : undefined;
+        return this.clientSpocService.update(data,id, userId)
     }
 
     @Delete('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @ApiMessage('Client SPOC deleted successfully')
-    deleteClientSpoc(@Param('id') id: string ){
-        return this.clientSpocService.remove(id)
+    deleteClientSpoc(@Param('id') id: string,@Req() req: { user?: { id: string | number } } ){
+        const userId = req.user?.id != null ? Number(req.user.id) : undefined; 
+        return this.clientSpocService.remove(id,userId)
     }
 
 }

@@ -30,7 +30,7 @@ export class RequirementService {
     private requirementStatusLogService: RequirementStatusLogService,
   ) {}
 
-  async create(data: RequirementCreateDto) {
+  async create(data: RequirementCreateDto, changedByUserId?: number) {
     const { client_id, spoc_id, assigned_hr_id, ...rest } = data;
     const clientId = client_id != null ? Number(client_id) : undefined;
     const spocId = spoc_id != null ? String(spoc_id) : undefined;
@@ -71,12 +71,16 @@ export class RequirementService {
       client: { id: clientId },
       spoc: { id: spocId },
       ...(assignedHr && { assignedHr }),
+      ...(changedByUserId != null && {
+        createdByUser: { id: changedByUserId } as User,
+        updatedByUser: { id: changedByUserId } as User,
+      }),
     });
     const saved = (await this.repo.save(requirement)) as Requirement;
     return this.repo.findOne({
       where: { id: saved.id },
       relations: ['client', 'spoc', 'assignedHr'],
-    });
+    }) as Promise<Requirement>;
   }
 
   async update(data: RequirementCreateDto, id: number, changedByUserId?: number) {
@@ -122,11 +126,17 @@ export class RequirementService {
           throw new NotFoundException(`User (assigned HR) with id ${hrId} not found`);
         }
         existing.assignedHr = { id: hrId } as User;
+        existing.updatedByUser = { id: changedByUserId } as User;
+        existing.updatedAt = new Date();
       }
     }
 
     const previousStatus = existing.status;
     Object.assign(existing, rest);
+    if (changedByUserId != null) {
+      existing.updatedByUser = { id: changedByUserId } as User;
+      existing.updatedAt = new Date();
+    }
     await this.repo.save(existing);
     if (previousStatus !== existing.status) {
       await this.requirementStatusLogService.create({
@@ -141,7 +151,7 @@ export class RequirementService {
     }
     return this.repo.findOne({
       where: { id },
-      relations: ['client', 'spoc', 'assignedHr'],
+      relations: ['client', 'spoc', 'assignedHr', 'createdByUser', 'updatedByUser'],
     });
   }
 
@@ -188,7 +198,7 @@ export class RequirementService {
   }
 
   async findAll() {
-    const list = await this.repo.find({ relations: ['client', 'spoc', 'assignedHr'] });
+    const list = await this.repo.find({ relations: ['client', 'spoc', 'assignedHr', 'createdByUser', 'updatedByUser'] });
     const ids = list.map((r) => r.id);
     const totalActiveDaysMap = await this.getTotalActiveDaysMap(ids);
     return list.map((r) => ({
@@ -200,7 +210,7 @@ export class RequirementService {
   async findOne(id: number) {
     const requirement = await this.repo.findOne({
       where: { id },
-      relations: ['client', 'spoc', 'assignedHr'],
+      relations: ['client', 'spoc', 'assignedHr', 'createdByUser', 'updatedByUser'],
     });
     if (!requirement) return null;
     const totalActiveDaysMap = await this.getTotalActiveDaysMap([id]);
@@ -210,8 +220,19 @@ export class RequirementService {
     };
   }
 
-  remove(id: number) {
-    return this.repo.delete(id);
+  async remove(id: number, changedByUserId?: number): Promise<Requirement> {
+    const existing = await this.repo.findOne({
+      where: { id },
+      relations: ['client', 'spoc', 'assignedHr', 'createdByUser', 'updatedByUser'],
+    });
+    if (!existing) {
+      throw new NotFoundException(`Requirement with id ${id} not found`);
+    }
+    if (changedByUserId != null) {
+      existing.updatedByUser = { id: changedByUserId } as User;
+    }
+    existing.isDeleted = true;
+    return this.repo.save(existing) as Promise<Requirement>;
   }
 
   /**

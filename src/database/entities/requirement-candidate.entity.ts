@@ -12,6 +12,7 @@ import { Requirement } from './requirement.entity';
 import { Candidate } from './candidate.entity';
 import { CandidateStage } from './candidate-stage.entity';
 import { RequirementCandidateComment } from './requirement-candidate-comment.entity';
+import { User } from './user.entity';
 
 export enum RequirementCandidateStatus {
   ACTIVE = 'ACTIVE',
@@ -91,4 +92,15 @@ export class RequirementCandidate {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @Column({ name: 'is_deleted', type: 'boolean', default: false })
+  isDeleted: boolean;
+  
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  createdByUser: User | null;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'updated_by' })
+  updatedByUser: User | null;
 }

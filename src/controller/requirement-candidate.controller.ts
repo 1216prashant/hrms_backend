@@ -142,7 +142,8 @@ export class RequirementCandidateController {
   @Delete('/:id')
   @UseGuards(JwtAuthGuard)
   @ApiMessage('Requirement Candidate  Mapping deleted successfully')
-  delete(@Param('id', ParseIntPipe) id: number) {
+  delete(@Param('id', ParseIntPipe) id: number, @Req() req: { user?: { id: string | number } }) {
+    const userId = req.user?.id != null ? Number(req.user.id) : undefined;
     return this.requirementCandidateService.remove(id);
   }
 }

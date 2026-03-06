@@ -10,6 +10,7 @@ import { BillingModel } from 'src/database/entities/requirement.entity';
 import { InvoiceStatus } from 'src/database/entities/invoice.entity';
 import { ClientAgreement } from 'src/database/entities/client-agreement.entity';
 import { AgreementBillingModel } from 'src/database/entities/client-agreement.entity';
+import { User } from 'src/database/entities/user.entity';
 
 const GST_RATE = 0.18;
 const DUE_DAYS_AFTER_INVOICE = 30;
@@ -34,7 +35,7 @@ export class InvoiceService {
     private clientAgreementRepo: Repository<ClientAgreement>,
   ) {}
 
-  async create(data: InvoiceCreateDto) {
+  async create(data: InvoiceCreateDto, userId?: number) {
     const { requirement_id, candidate_id, ...rest } = data;
 
     if (requirement_id == null) {
@@ -62,6 +63,10 @@ export class InvoiceService {
       candidate,
       amountPaid: (rest as Partial<Invoice>).amountPaid ?? 0,
       balanceDue: (rest as Partial<Invoice>).balanceDue ?? total,
+      ...(userId != null && {
+        createdByUser: { id: userId } as User,
+        updatedByUser: { id: userId } as User,
+      }),
     });
     const saved = await this.repo.save(invoice);
     return this.repo.findOne({
@@ -70,9 +75,9 @@ export class InvoiceService {
     });
   }
 
-  async update(data: Partial<InvoiceCreateDto>, id: number) {
+  async update(data: Partial<InvoiceCreateDto>, id: number, userId?: number) {
     const existing = await this.repo.findOne({
-      where: { id },
+      where: { id, isDeleted: false },
       relations: ['requirement', 'candidate'],
     });
     if (!existing) {
@@ -97,10 +102,13 @@ export class InvoiceService {
     }
 
     Object.assign(existing, rest);
+    if (userId != null) {
+      existing.updatedByUser = { id: userId } as User;
+    }
     await this.repo.save(existing);
     return this.repo.findOne({
-      where: { id },
-      relations: ['requirement', 'candidate'],
+      where: { id, isDeleted: false },
+      relations: ['requirement', 'candidate', 'createdByUser', 'updatedByUser'],
     });
   }
 
@@ -118,26 +126,34 @@ export class InvoiceService {
     }
     return this.repo.find({
       where,
-      relations: ['requirement', 'candidate'],
+      relations: ['requirement', 'candidate', 'createdByUser', 'updatedByUser'],
       order: { id: 'ASC' },
     });
   }
 
   findOne(id: number) {
     return this.repo.findOne({
-      where: { id },
-      relations: ['requirement', 'candidate'],
+      where: { id, isDeleted: false },
+      relations: ['requirement', 'candidate', 'createdByUser', 'updatedByUser'],
     });
   }
 
-  remove(id: number) {
-    return this.repo.delete(id);
+  async remove(id: number, userId?: number) {
+    const existing = await this.repo.findOne({ where: { id, isDeleted: false } });
+    if (!existing) {
+      throw new NotFoundException(`Invoice with id ${id} not found`);
+    }
+    if (userId != null) {
+      existing.updatedByUser = { id: userId } as User;
+    }
+    existing.isDeleted = true;
+    return this.repo.save(existing);
   }
 
   findByRequirementId(requirementId: number) {
     return this.repo.find({
       where: { requirement: { id: requirementId } },
-      relations: ['requirement', 'candidate'],
+      relations: ['requirement', 'candidate', 'createdByUser', 'updatedByUser'],
       order: { id: 'ASC' },
     });
   }
@@ -145,7 +161,7 @@ export class InvoiceService {
   findByCandidateId(candidateId: number) {
     return this.repo.find({
       where: { candidate: { id: candidateId } },
-      relations: ['requirement', 'candidate'],
+      relations: ['requirement', 'candidate', 'createdByUser', 'updatedByUser'],
       order: { id: 'ASC' },
     });
   }
@@ -154,7 +170,7 @@ export class InvoiceService {
     const id = Number(clientId);
     return this.repo.find({
       where: { requirement: { client: { id } } },
-      relations: ['requirement', 'candidate', 'requirement.client'],
+      relations: ['requirement', 'candidate', 'requirement.client', 'createdByUser', 'updatedByUser'],
       order: { id: 'ASC' },
     });
   }
@@ -165,7 +181,7 @@ export class InvoiceService {
    * billing model (from requirement if overrideBillingModel, else from client agreement),
    * and calculates GST at 18% on amount before tax.
    */
-  async createInvoicesForClosedRequirement(requirementId: number): Promise<Invoice[]> {
+  async createInvoicesForClosedRequirement(requirementId: number, userId?: number): Promise<Invoice[]> {
     const requirement = await this.requirementRepo.findOne({
       where: { id: requirementId },
       relations: ['client'],
@@ -272,6 +288,10 @@ export class InvoiceService {
           status: InvoiceStatus.RAISED,
           amountPaid: 0,
           balanceDue: totalAmount,
+          ...(userId != null && {
+            createdByUser: { id: userId } as User,
+            updatedByUser: { id: userId } as User,
+          }),
         });
         try {
           saved = await this.repo.save(invoice);
@@ -286,8 +306,8 @@ export class InvoiceService {
       }
       if (saved) {
         const full = await this.repo.findOne({
-          where: { id: saved.id },
-          relations: ['requirement', 'candidate'],
+          where: { id: saved.id, isDeleted: false },
+          relations: ['requirement', 'candidate', 'createdByUser', 'updatedByUser'],
         });
         if (full) created.push(full);
       }

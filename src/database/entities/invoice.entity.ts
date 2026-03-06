@@ -10,6 +10,7 @@ import {
 import { Requirement } from './requirement.entity';
 import { Candidate } from './candidate.entity';
 import { BillingModel } from './requirement.entity';
+import { User } from './user.entity';
 
 export enum InvoiceStatus {
   RAISED = 'RAISED',
@@ -94,4 +95,15 @@ export class Invoice {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @Column({ name: 'is_deleted', type: 'boolean', default: false })
+  isDeleted: boolean;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  createdByUser: User | null;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'updated_by' })
+  updatedByUser: User | null;
 }

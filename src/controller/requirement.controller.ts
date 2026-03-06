@@ -34,8 +34,9 @@ export class RequirementController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @ApiMessage('Requirement created successfully')
-    createRequirement(@Body() data: Partial<Requirement>){
-        return this.requirementService.create(data)
+    createRequirement(@Body() data: Partial<Requirement>, @Req() req: { user?: { id: string | number } }){
+        const changedByUserId = req.user?.id != null ? Number(req.user.id) : undefined;
+        return this.requirementService.create(data, changedByUserId);
     }
 
     
@@ -56,8 +57,9 @@ export class RequirementController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @ApiMessage('Requirement deleted successfully')
-    deleteRequirement(@Param('id', ParseIntPipe) id: number ){
-        return this.requirementService.remove(id)
+    deleteRequirement(@Param('id', ParseIntPipe) id: number, @Req() req: { user?: { id: string | number } }){
+        const changedByUserId = req.user?.id != null ? Number(req.user.id) : undefined;
+        return this.requirementService.remove(id, changedByUserId);
     }
 
 }
