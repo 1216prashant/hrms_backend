@@ -28,6 +28,13 @@ export class User extends BaseEntity{
   @Exclude()
   password: string;
 
+  @Column({ name: 'password_reset_token_hash', type: 'varchar', length: 64, nullable: true })
+  @Exclude()
+  passwordResetTokenHash: string | null;
+
+  @Column({ name: 'password_reset_token_expires_at', type: 'datetime', nullable: true })
+  passwordResetTokenExpiresAt: Date | null;
+
   @Column({ type: 'enum', enum: UserRole, name: 'role' })
   role: UserRole;
 
