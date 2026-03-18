@@ -73,7 +73,7 @@ export class InvoiceController {
 
   @Post('/generate-for-requirement/:requirementId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Invoices generated for requirement successfully')
   generateInvoicesForRequirement(
     @Param('requirementId', ParseIntPipe) requirementId: number,
@@ -85,7 +85,7 @@ export class InvoiceController {
 
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Invoice created successfully')
   createInvoice(@Body() data: Partial<Invoice> & { requirement_id: number; candidate_id: number }, @Req() req: { user?: { id: string | number } }) {
     const userId = req.user?.id != null ? Number(req.user.id) : undefined;
@@ -94,7 +94,7 @@ export class InvoiceController {
 
   @Put('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Invoice updated successfully')
   updateInvoice(
     @Body() data: Partial<Invoice> & { requirement_id?: number; candidate_id?: number },

@@ -32,7 +32,7 @@ export class RequirementController {
 
     @Post('/')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @Roles(UserRole.ADMIN, UserRole.HR)
     @ApiMessage('Requirement created successfully')
     createRequirement(@Body() data: Partial<Requirement>, @Req() req: { user?: { id: string | number } }){
         const changedByUserId = req.user?.id != null ? Number(req.user.id) : undefined;
@@ -42,7 +42,7 @@ export class RequirementController {
     
     @Put('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @Roles(UserRole.ADMIN, UserRole.HR)
     @ApiMessage('Requirement updated successfully')
     updateRequirement(
       @Body() data: Partial<Requirement>,

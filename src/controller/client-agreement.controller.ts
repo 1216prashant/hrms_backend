@@ -42,7 +42,7 @@ export class ClientAgreementController {
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiMessage('Client Agreement created successfully')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   create(
     @Body() data: Partial<ClientAgreement> & { client_id: number },
   ) {
@@ -51,7 +51,7 @@ export class ClientAgreementController {
 
   @Put('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Client Agreement updated successfully')
   update(
     @Body() data: Partial<ClientAgreement> & { client_id?: number },
@@ -62,7 +62,7 @@ export class ClientAgreementController {
 
   @Delete('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Client Agreement deleted successfully')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.clientAgreementService.remove(id);

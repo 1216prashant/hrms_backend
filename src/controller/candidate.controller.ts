@@ -14,6 +14,9 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CandidateService } from 'src/services/candidate.service';
 import { Candidate } from 'src/database/entities/candidate.entity';
 import { ApiMessage } from 'src/common/decorators/api-message.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/database/entities/user.entity';
 
 @Controller('candidates')
 export class CandidateController {
@@ -55,7 +58,8 @@ export class CandidateController {
   }
 
   @Delete('/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiMessage('Candidate deleted successfully')
   deleteCandidate(@Param('id', ParseIntPipe) id: number, @Req() req: { user?: { id: string | number } }) {
     const userId = req.user?.id != null ? Number(req.user.id) : undefined;

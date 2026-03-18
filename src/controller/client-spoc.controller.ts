@@ -13,8 +13,7 @@ export class ClientSpocController {
     constructor(private readonly clientSpocService: ClientSpocService){}
     
     @Get('/')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard)
     getAllClientSpoc(){
         return this.clientSpocService.findAll()
     }
@@ -33,7 +32,7 @@ export class ClientSpocController {
 
     @Post('/')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @Roles(UserRole.ADMIN, UserRole.HR)
     @ApiMessage('Client SPOC created successfully')
     createClientSpoc(@Body() data: Partial<ClientSpoc>, @Req() req: { user?: { id: string | number } }){
         const userId = req.user?.id != null ? Number(req.user.id) : undefined;
@@ -42,7 +41,7 @@ export class ClientSpocController {
 
     @Put('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @Roles(UserRole.ADMIN, UserRole.HR)
     @ApiMessage('Client SPOC updated successfully')
     updateClientSpoc(@Body() data: Partial<ClientSpoc>, @Param('id') id: string, @Req() req: { user?: { id: string | number } }){
         const userId = req.user?.id != null ? Number(req.user.id) : undefined;

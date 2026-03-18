@@ -42,7 +42,7 @@ export class PaymentController {
 
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Payment created successfully')
   createPayment(@Body() data: Partial<Payment> & { invoice_id: number }, @Req() req: { user?: { id: string | number } }) {
     const userId = req.user?.id != null ? Number(req.user.id) : undefined;
@@ -51,7 +51,7 @@ export class PaymentController {
 
   @Put('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Payment updated successfully')
   updatePayment(
     @Body() data: Partial<Payment> & { invoice_id?: number },

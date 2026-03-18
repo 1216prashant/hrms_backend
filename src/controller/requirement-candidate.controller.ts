@@ -16,6 +16,9 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirementCandidateService } from 'src/services/requirement-candidate.service';
 import type { RequirementCandidateCreateDto } from 'src/services/requirement-candidate.service';
 import { EventReason } from 'src/database/entities/requirement-candidate-comment.entity';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/database/entities/user.entity';
 
 @Controller('candidates-applications')
 export class RequirementCandidateController {
@@ -57,7 +60,8 @@ export class RequirementCandidateController {
   }
 
   @Post('/')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Requirement Candidate  Mapping created successfully')
   create(
     @Body() data: RequirementCandidateCreateDto,
@@ -73,7 +77,8 @@ export class RequirementCandidateController {
    * Body: { requirement_id, candidate_id, event_reason }
    */
   @Post('/reopen-requirement')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Replacement recorded and requirement reopened successfully')
   recordReplacementByRequirementAndCandidate(
     @Body() body: {
@@ -106,7 +111,8 @@ export class RequirementCandidateController {
    * Body: { event_reason, candidate_id? } (candidate_id optional, for validation)
    */
   @Post('/:id/record-replacement')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Replacement recorded and requirement reopened successfully')
   recordReplacement(
     @Param('id', ParseIntPipe) id: number,
@@ -128,7 +134,8 @@ export class RequirementCandidateController {
   }
 
   @Put('/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Requirement Candidate  Mapping updated successfully')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -140,7 +147,8 @@ export class RequirementCandidateController {
   }
 
   @Delete('/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiMessage('Requirement Candidate  Mapping deleted successfully')
   delete(@Param('id', ParseIntPipe) id: number, @Req() req: { user?: { id: string | number } }) {
     const userId = req.user?.id != null ? Number(req.user.id) : undefined;

@@ -50,7 +50,7 @@ export class AuthService {
   }
 
   async findAllHrUsers() {
-    return this.repo.find({ where: { role: UserRole.HR } });
+    return this.repo.find({ where: { role: UserRole.HR || UserRole.ADMIN } });
   }
 
   async findOneById(id: number) {

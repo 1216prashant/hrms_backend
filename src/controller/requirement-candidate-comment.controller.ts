@@ -66,7 +66,7 @@ export class RequirementCandidateCommentController {
 
   @Delete('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.HR)
+  @Roles(UserRole.ADMIN)
   @ApiMessage('Comment deleted successfully')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.requirementCandidateCommentService.remove(id);
