@@ -13,14 +13,15 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('/')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   getDashboard(@Query() query: DashboardQueryDto) {
     return this.dashboardService.getDashboard(query.from, query.to);
   }
 
   @Get('/hr')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.HR)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   getDashboardForHr(
     @Query() query: DashboardQueryDto,
     @CurrentUser() user: JwtPayload,

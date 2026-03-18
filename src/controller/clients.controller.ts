@@ -27,7 +27,7 @@ export class ClientsController {
     @Post('/')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @ApiMessage('Client created successfully')
-    @Roles(UserRole.ADMIN)
+    @Roles(UserRole.ADMIN, UserRole.HR)
     createClient(@Body() data: Partial<Client>, @Req() req: { user?: { id: string | number } }){
         const userId = req.user?.id != null ? Number(req.user.id) : undefined;
         return this.clientsService.create(data, userId)
@@ -36,7 +36,7 @@ export class ClientsController {
     
     @Put('/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @Roles(UserRole.ADMIN, UserRole.HR)
     @ApiMessage('Client updated successfully')
     updateClient(@Body() data: Partial<Client>, @Param('id') id: string, @Req() req: { user?: { id: string | number } }){
         const userId = req.user?.id != null ? Number(req.user.id) : undefined;

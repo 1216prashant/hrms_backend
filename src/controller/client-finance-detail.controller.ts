@@ -42,7 +42,7 @@ export class ClientFinanceDetailController {
 
   @Post('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Client Finance Detail created successfully')
   create(
     @Body() data: Partial<ClientFinanceDetail> & { client_id: number },
@@ -52,7 +52,7 @@ export class ClientFinanceDetailController {
 
   @Put('/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Client Finance Detail updated successfully')
   update(
     @Body() data: Partial<ClientFinanceDetail> & { client_id?: number },

@@ -14,6 +14,9 @@ import {
 import { Candidate } from 'src/database/entities/candidate.entity';
 import { CandidateStage } from 'src/database/entities/candidate-stage.entity';
 import { StagesService } from 'src/services/stages.service';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { UserRole } from 'src/database/entities/user.entity';
+import { Roles } from 'src/common/decorators/roles.decorator';
   
   @Controller('stages')
   export class StagesController {
@@ -32,14 +35,16 @@ import { StagesService } from 'src/services/stages.service';
     }
   
     @Post('/')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN, UserRole.HR)
     @ApiMessage('Candidate created successfully')
     createStage(@Body() data: Partial<CandidateStage>) {
       return this.stagesService.create(data);
     }
   
     @Put('/:id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard,RolesGuard)
+    @Roles(UserRole.ADMIN, UserRole.HR)
     @ApiMessage('Candidate updated successfully')
     updateStage(
       @Body() data: Partial<Candidate>,
@@ -49,7 +54,8 @@ import { StagesService } from 'src/services/stages.service';
     }
   
     @Delete('/:id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
     @ApiMessage('Candidate deleted successfully')
     deleteStage(@Param('id', ParseIntPipe) id: number) {
       return this.stagesService.remove(id);

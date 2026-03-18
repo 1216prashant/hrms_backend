@@ -15,6 +15,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import { FileTransferService } from 'src/services/file-transfer.service';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { UserRole } from 'src/database/entities/user.entity';
 
 // When FTP is configured (e.g. on Render), use OS temp dir so we don't need write access to UPLOAD_DEST. Files are uploaded to Hostinger and then removed.
 const UPLOAD_DEST = process.env.UPLOAD_DEST || 'uploads';
@@ -75,7 +78,8 @@ export class UploadController {
 
   /** Resume uploads – form field: "file" */
   @Post('resume')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Resume uploaded successfully')
   @UseInterceptors(FileInterceptor('file', multerOptions('resume')))
   async uploadResume(@UploadedFile() file: Express.Multer.File) {
@@ -87,7 +91,8 @@ export class UploadController {
 
   /** Client agreement file uploads – form field: "file" */
   @Post('agreement')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Client agreement file uploaded successfully')
   @UseInterceptors(FileInterceptor('file', multerOptions('agreement')))
   async uploadAgreement(@UploadedFile() file: Express.Multer.File) {
@@ -99,7 +104,8 @@ export class UploadController {
 
   /** Requirement file uploads – form field: "file" */
   @Post('requirement')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiMessage('Requirement file uploaded successfully')
   @UseInterceptors(FileInterceptor('file', multerOptions('requirement')))
   async uploadRequirement(@UploadedFile() file: Express.Multer.File) {
