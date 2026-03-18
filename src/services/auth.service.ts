@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserRole } from 'src/database/entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes, createHash } from 'crypto';
@@ -50,7 +50,7 @@ export class AuthService {
   }
 
   async findAllHrUsers() {
-    return this.repo.find({ where: { role: UserRole.HR || UserRole.ADMIN } });
+    return this.repo.find({ where: { role: In([UserRole.HR, UserRole.ADMIN]) } });
   }
 
   async findOneById(id: number) {
