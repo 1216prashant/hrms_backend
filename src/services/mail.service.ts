@@ -132,7 +132,7 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(toEmail: string, link: string) {
-    const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
+    const emailServiceUrl = process.env.EMAIL_SERVICE_URL+'sendpasswordresetmail';
     if (emailServiceUrl) {
       try {
         this.logger.debug(`Calling email service: ${emailServiceUrl}`);
