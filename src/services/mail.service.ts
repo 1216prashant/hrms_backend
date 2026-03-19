@@ -96,14 +96,18 @@ export class MailService {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const nodemailer = require('nodemailer') as typeof import('nodemailer');
 
+    const { address } = await dnsLookup(host, { family: 4 });
+
     const transporter = nodemailer.createTransport({
-      host,
+      host: address, // 🔥 use IPv4 directly
       port,
       secure: process.env.MAIL_SECURE === 'true',
       auth: { user, pass },
-      // Force SMTP to resolve/connect via IPv4 only.
-      family: 4,
-    } as SMTPTransport.Options);
+    
+      tls: {
+        servername: host, // VERY IMPORTANT for SSL
+      },
+    });
 
     const mailData = {
       from,
