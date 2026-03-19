@@ -132,47 +132,30 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(toEmail: string, link: string) {
-    const subject = 'Reset your password';
-    const appName = process.env.APP_NAME || 'HRMS';
+    const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
+    if (emailServiceUrl) {
+      try {
+        const res = await fetch(emailServiceUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: toEmail, link }),
+        });
 
-    const text =
-      `You requested a password reset for ${appName}.\n\n` +
-      `This link is valid for 1 hour.\n\n` +
-      `If you did not request this, you can ignore this email.`;
+        if (!res.ok) {
+          const detail = await res.text().catch(() => '');
+          this.logger.warn(
+            `Email service rejected request (${res.status}) ${res.statusText}: ${detail}`,
+          );
+          return { delivered: false };
+        }
 
-    const html = `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${subject}</title>
-  </head>
-  <body style="margin:0;background:#f6f7fb;font-family:Arial,Helvetica,sans-serif;">
-    <div style="max-width:640px;margin:0 auto;padding:28px 16px;">
-      <div style="background:#ffffff;border-radius:12px;padding:24px;border:1px solid #eceef5;">
-        <div style="font-size:18px;font-weight:700;color:#111827;margin-bottom:10px;">${appName}</div>
-        <div style="font-size:20px;font-weight:700;color:#111827;margin:0 0 10px;">Reset your password</div>
-        <div style="font-size:14px;line-height:20px;color:#374151;margin:0 0 18px;">
-          We received a request to reset your password. Click the button below to set a new one.
-        </div>
-        <div style="margin:22px 0;">
-          <a href="${link}"
-             style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:700;font-size:14px;">
-            Reset Password
-          </a>
-        </div>
-        <div style="font-size:12px;line-height:18px;color:#6b7280;">
-          This link is valid for <strong>1 hour</strong>. If you did not request this, you can safely ignore this email.
-        </div>
-      </div>
-      <div style="font-size:11px;line-height:16px;color:#9ca3af;margin-top:12px;text-align:center;">
-        © ${new Date().getFullYear()} ${appName}
-      </div>
-    </div>
-  </body>
-</html>`;
-
-    return this.sendMail({ to: toEmail, subject, text, html });
+        return { delivered: true };
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`Failed to call email service: ${reason}`);
+        return { delivered: false };
+      }
+    }
   }
 }
 
