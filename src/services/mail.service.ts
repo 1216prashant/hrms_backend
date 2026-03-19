@@ -5,18 +5,77 @@ type SendMailOptions = {
   subject: string;
   text: string;
   html?: string;
+  replyTo?: string;
 };
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
 
-  async sendMail({ to, subject, text, html }: SendMailOptions) {
+  private async appendToSentMailbox(mailData: {
+    from: string;
+    to: string;
+    subject: string;
+    text: string;
+    html?: string;
+    replyTo?: string;
+  }) {
+    const shouldStoreInSent = process.env.MAIL_STORE_IN_SENT === 'true';
+    if (!shouldStoreInSent) return false;
+
+    const imapHost = process.env.IMAP_HOST || process.env.MAIL_IMAP_HOST;
+    const imapPort = process.env.IMAP_PORT
+      ? Number(process.env.IMAP_PORT)
+      : process.env.MAIL_IMAP_PORT
+        ? Number(process.env.MAIL_IMAP_PORT)
+        : undefined;
+    const imapUser =
+      process.env.IMAP_USER || process.env.MAIL_IMAP_USER || process.env.MAIL_USER;
+    const imapPass =
+      process.env.IMAP_PASS || process.env.MAIL_IMAP_PASS || process.env.MAIL_PASS;
+    const sentMailbox = process.env.IMAP_SENT_MAILBOX || 'Sent';
+
+    if (!imapHost || !imapPort || !imapUser || !imapPass) {
+      this.logger.warn('IMAP config missing; sent-mail copy was not stored.');
+      return false;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const MailComposer = require('nodemailer/lib/mail-composer');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { ImapFlow } = require('imapflow') as typeof import('imapflow');
+
+    const message = new MailComposer(mailData);
+    const rawMessage = await message.compile().build();
+
+    const client = new ImapFlow({
+      host: imapHost,
+      port: imapPort,
+      secure: process.env.IMAP_SECURE ? process.env.IMAP_SECURE === 'true' : true,
+      auth: {
+        user: imapUser,
+        pass: imapPass,
+      },
+    });
+
+    await client.connect();
+    try {
+      await client.mailboxOpen(sentMailbox);
+      await client.append(sentMailbox, rawMessage, ['\\Seen']);
+    } finally {
+      await client.logout();
+    }
+
+    return true;
+  }
+
+  async sendMail({ to, subject, text, html, replyTo }: SendMailOptions) {
     const host = process.env.MAIL_HOST;
     const port = process.env.MAIL_PORT ? Number(process.env.MAIL_PORT) : undefined;
     const user = process.env.MAIL_USER;
     const pass = process.env.MAIL_PASS;
     const from = process.env.MAIL_FROM || user;
+    const envReplyTo = process.env.MAIL_REPLY_TO;
 
     if (!host || !port || !user || !pass || !from) {
       // Keep backend functional even if SMTP isn't configured yet.
@@ -37,15 +96,26 @@ export class MailService {
       auth: { user, pass },
     });
 
-    await transporter.sendMail({
+    const mailData = {
       from,
       to,
       subject,
       text,
+      ...(replyTo || envReplyTo ? { replyTo: replyTo || envReplyTo } : {}),
       ...(html ? { html } : {}),
-    });
+    };
 
-    return { delivered: true };
+    await transporter.sendMail(mailData);
+
+    let savedToSent = false;
+    try {
+      savedToSent = await this.appendToSentMailbox(mailData);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Email sent but failed to store in Sent mailbox: ${reason}`);
+    }
+
+    return { delivered: true, savedToSent };
   }
 
   async sendPasswordResetEmail(toEmail: string, link: string) {
