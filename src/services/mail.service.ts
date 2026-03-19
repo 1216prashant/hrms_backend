@@ -135,6 +135,7 @@ export class MailService {
     const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
     if (emailServiceUrl) {
       try {
+        this.logger.debug(`Calling email service: ${emailServiceUrl}`);
         const res = await fetch(emailServiceUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -144,7 +145,7 @@ export class MailService {
         if (!res.ok) {
           const detail = await res.text().catch(() => '');
           this.logger.warn(
-            `Email service rejected request (${res.status}) ${res.statusText}: ${detail}`,
+            `Email service rejected request (${res.status}) ${res.statusText} for URL ${emailServiceUrl}: ${detail}`,
           );
           return { delivered: false };
         }
