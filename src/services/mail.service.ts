@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { lookup as dnsLookup } from 'node:dns/promises';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 type SendMailOptions = {
   to: string;
@@ -48,13 +50,18 @@ export class MailService {
     const message = new MailComposer(mailData);
     const rawMessage = await message.compile().build();
 
+    const imapResolved = await dnsLookup(imapHost, { family: 4 });
     const client = new ImapFlow({
-      host: imapHost,
+      host: imapResolved.address,
       port: imapPort,
       secure: process.env.IMAP_SECURE ? process.env.IMAP_SECURE === 'true' : true,
       auth: {
         user: imapUser,
         pass: imapPass,
+      },
+      // Force IPv4 DNS resolution to avoid IPv6 connection attempts.
+      tls: {
+        servername: imapHost,
       },
     });
 
@@ -94,7 +101,9 @@ export class MailService {
       port,
       secure: process.env.MAIL_SECURE === 'true',
       auth: { user, pass },
-    });
+      // Force SMTP to resolve/connect via IPv4 only.
+      family: 4,
+    } as SMTPTransport.Options);
 
     const mailData = {
       from,
