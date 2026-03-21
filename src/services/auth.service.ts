@@ -80,7 +80,7 @@ export class AuthService {
     await this.repo.save(user);
 
     const frontendUrl = process.env.FRONTEND_URL;
-    const link = `${frontendUrl}/auth/reset-password?token=${encodeURIComponent(token)}`;
+    const link = `${frontendUrl}/#/auth/reset-password?token=${encodeURIComponent(token)}`;
     await this.mailService.sendPasswordResetEmail(user.email, link);
 
     return { message: 'If the email exists, a reset link was sent.' };
