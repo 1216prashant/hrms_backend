@@ -25,7 +25,12 @@ async function bootstrap() {
   const uploadPath = join(process.cwd(), uploadDir);
   app.useStaticAssets(uploadPath, { prefix: '/upload/' });
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true, // enables @Transform on DTOs (e.g. password → newPassword)
+    }),
+  );
   app.useGlobalFilters(new AllExceptionsFilter());
   await app.listen(process.env.PORT ?? 3000);
 }
